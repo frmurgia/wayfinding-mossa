@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PIEGA — Opificio Digitale</title>
+  <meta name="description" content="Simulatore di piegatura per pezzi stampati in 3D a solo riempimento: dal file STL/STEP piatto all'oggetto piegato. Laboratorio di wayfinding, IT Lorenzo Mossa, Oristano.">
+  <link rel="stylesheet" href="css/stile.css">
+</head>
+<body>
+  <header class="testata">
+    <div class="marchio">
+      <span class="logo" aria-hidden="true"><svg viewBox="0 0 40 40"><rect width="40" height="40" fill="#f1d82a"/><path d="M8 20h22M21 11l9 9-9 9" fill="none" stroke="#1d1d1b" stroke-width="4" stroke-linecap="square"/></svg></span>
+      <div>
+        <b>PIEGA</b>
+        <small>L’Opificio Digitale · 3a L CAT · IT “Lorenzo Mossa”</small>
+      </div>
+    </div>
+    <nav class="schede">
+      <button data-scheda="esempi">Esempi</button>
+      <button data-scheda="agganci">Agganci</button>
+      <button data-scheda="guida">Guida</button>
+      <button id="btnPresenta" class="presenta">▶ Presenta</button>
+    </nav>
+  </header>
+
+  <main id="app">
+    <aside id="pannello">
+      <!-- 1 SORGENTE -->
+      <section class="blocco" id="secSorgente">
+        <h2><span>1</span> Pezzo piatto</h2>
+        <div class="segmenti" id="segSorgente">
+          <button data-v="forma" class="attivo">Forma del corso</button>
+          <button data-v="file">File STL / STEP</button>
+        </div>
+        <div id="boxForma">
+          <label class="campo largo"><span>Forma</span><select id="selForma"></select></label>
+          <div id="parametriForma" class="griglia2"></div>
+        </div>
+        <div id="boxFile" class="nascosto">
+          <label class="drop" id="dropZone">
+            <input type="file" id="inFile" accept=".stl,.step,.stp,.iges,.igs">
+            <b>Trascina qui un file</b><span>STL, STEP o IGES · pezzo piatto, in mm</span>
+          </label>
+          <div id="nomeFile" class="nota"></div>
+          <div class="segmenti piccoli" id="segModoFile">
+            <button data-v="solido" class="attivo">Com’è (solido)</button>
+            <button data-v="trama">Come trama (solo riempimento)</button>
+          </div>
+          <div class="riga-bottoni">
+            <button id="rotX" title="Ruota di 90° attorno a X">↻ X</button>
+            <button id="rotY" title="Ruota di 90° attorno a Y">↻ Y</button>
+            <button id="rotZ" title="Ruota di 90° attorno a Z">↻ Z</button>
+            <button id="capovolgi" title="Capovolgi il pezzo">⇅ Capovolgi</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2 TRAMA -->
+      <section class="blocco" id="secTrama">
+        <h2><span>2</span> Trama e stampa</h2>
+        <div class="griglia2">
+          <label class="campo largo"><span>Trama</span><select id="tTipo"></select></label>
+          <label class="campo"><span>Passo (mm)</span><input type="number" id="tPasso" min="2" max="40" step="0.5"></label>
+          <label class="campo"><span>Linea (mm)</span><input type="number" id="tLarg" min="0.4" max="4" step="0.1"></label>
+          <label class="campo"><span>Angolo (°)</span><input type="number" id="tAng" min="-90" max="90" step="5"></label>
+          <label class="campo"><span>Bordo (mm)</span><input type="number" id="tBordo" min="0" max="10" step="0.2"></label>
+          <label class="campo"><span>Strati</span><input type="number" id="tStrati" min="2" max="40" step="1"></label>
+          <label class="campo"><span>Altezza strato</span><input type="number" id="tHStrato" min="0.08" max="0.4" step="0.02"></label>
+          <label class="campo check largo"><input type="checkbox" id="chkCerniere"><span>Barrette di cerniera nelle pieghe (mescola due trame)</span></label>
+          <label class="campo largo"><span>Pittogrammi</span><select id="tPitto">
+            <option value="separato">Stampati a parte, a innesto (perni)</option>
+            <option value="rilievo">In rilievo sulla tessera (cambio colore)</option>
+          </select></label>
+          <label class="campo"><span>Pittogramma: linea</span><input type="number" id="rLarg" min="1" max="8" step="0.2"></label>
+          <label class="campo"><span>Pittogramma: spessore</span><input type="number" id="rAlt" min="0" max="5" step="0.2"></label>
+        </div>
+        <div class="colori">
+          <div><span>Pezzo</span><div class="campioni" id="colPezzo"></div></div>
+          <div><span>Rilievo</span><div class="campioni" id="colRilievo"></div></div>
+        </div>
+      </section>
+
+      <!-- 3 PIEGHE -->
+      <section class="blocco" id="secPieghe">
+        <h2><span>3</span> Pieghe <small id="contaPieghe"></small></h2>
+        <p class="nota">Disegna le linee sulla vista dall’alto (sotto). <b>+</b> verso l’alto, <b>−</b> verso il piatto. Le pieghe con lo stesso numero di <b>fase</b> avvengono insieme.</p>
+        <div id="listaPieghe"></div>
+        <div class="riga-bottoni">
+          <button id="btnNuovaPiega" class="primario">+ Disegna piega</button>
+          <button id="btnResetPieghe">Ripristina</button>
+        </div>
+      </section>
+
+      <!-- 4 ESPORTA -->
+      <section class="blocco" id="secEsporta">
+        <h2><span>4</span> Esporta</h2>
+        <label class="campo largo"><span>Piatto stampante</span><select id="selPiatto">
+          <option value="250x210">Prusa MK4 / MK3 — 250 × 210</option>
+          <option value="256x256">Bambu A1 / P1S / X1 — 256 × 256</option>
+          <option value="220x220">Ender-3 / simili — 220 × 220</option>
+          <option value="180x180">Prusa Mini / Bambu A1 mini — 180 × 180</option>
+        </select></label>
+        <div id="infoStampa" class="nota"></div>
+        <div class="griglia2 bottoni">
+          <button id="expPiatto" class="primario">STL da stampare</button>
+          <button id="expPitto" class="primario nascosto">STL pittogramma</button>
+          <button id="expPiegato">STL piegato</button>
+          <button id="expPNG">Immagine PNG</button>
+          <button id="expJSON">Salva progetto</button>
+          <label class="bottone"><input type="file" id="inJSON" accept=".json" hidden>Apri progetto</label>
+          <button id="expSVG">Cartamodello SVG</button>
+        </div>
+      </section>
+    </aside>
+
+    <section id="area">
+      <div id="vista3d">
+        <div id="hud">
+          <div id="titoloEsempio"></div>
+          <div id="info"></div>
+          <div id="avvisi"></div>
+        </div>
+        <div id="strumenti3d">
+          <button data-cam="iso" title="Vista 3/4">3/4</button>
+          <button data-cam="alto" title="Dall’alto">Alto</button>
+          <button data-cam="fronte" title="Di fronte">Fronte</button>
+          <button id="btnRif" class="attivo" title="Mostra/nasconde la lastra o la colonna di riferimento">Lastra</button>
+        </div>
+        <div id="barraPiega">
+          <button id="btnPlay" class="play" title="Anima (barra spaziatrice)">▶</button>
+          <div class="cursore">
+            <input type="range" id="progresso" min="0" max="1000" value="1000">
+            <div class="tacche"><span>piatto</span><span id="valProgresso">100%</span><span>piegato</span></div>
+          </div>
+          <label class="spunta"><input type="checkbox" id="chkFasi" checked> a fasi</label>
+        </div>
+      </div>
+      <div id="vista2d">
+        <div class="barra2d">
+          <div class="segmenti piccoli" id="segStrumento">
+            <button data-v="sel" class="attivo" title="Seleziona e sposta (V)">↖ Sposta</button>
+            <button data-v="piega" title="Disegna una linea di piega (P)">✎ Piega</button>
+            <button data-v="base" title="Scegli la parte che resta ferma (B)">⌖ Base</button>
+          </div>
+          <label class="campo inline"><span>Aggancio</span><select id="selSnap">
+            <option value="0.5">0,5 mm</option><option value="1" selected>1 mm</option><option value="5">5 mm</option><option value="10">10 mm</option>
+          </select></label>
+          <button id="btnEstendi" title="Allunga la piega selezionata fino ai bordi del pezzo">⟷ Estendi</button>
+          <button id="btnAdatta" title="Inquadra tutto">⤢</button>
+          <span class="suggerimento" id="sugg2d">Vista dall’alto del pezzo piatto · ogni colore è una parte che si muove da sola</span>
+        </div>
+        <canvas id="tela2d"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <!-- pannelli sovrapposti -->
+  <div id="sovrapposto" class="nascosto" role="dialog" aria-modal="true">
+    <div class="foglio">
+      <button class="chiudi" id="chiudiSovrapposto" aria-label="Chiudi">✕</button>
+      <div id="contenutoSovrapposto"></div>
+    </div>
+  </div>
+
+  <!-- modalità presentazione -->
+  <div id="didascalia" class="nascosto">
+    <div class="did-testa"><span id="didLezione"></span><span id="didConta"></span></div>
+    <h1 id="didTitolo"></h1>
+    <p id="didTesto"></p>
+    <div class="did-aggancio"><b>Aggancio</b> <span id="didAggancio"></span></div>
+    <div class="did-comandi">
+      <button id="didPrec">←</button><button id="didPausa">❚❚</button><button id="didSucc">→</button><button id="didEsci">Esci (Esc)</button>
+    </div>
+  </div>
+
+  <div id="attesa" class="nascosto"><div class="rotella"></div><span id="attesaTesto">Calcolo…</span></div>
+
+  <script src="vendor/three.min.js"></script>
+  <script src="vendor/OrbitControls.js"></script>
+  <script src="vendor/clipper.js"></script>
+  <script src="vendor/earcut.min.js"></script>
+  <script src="js/stl.js"></script>
+  <script src="js/trama.js"></script>
+  <script src="js/piega.js"></script>
+  <script src="js/forme.js"></script>
+  <script src="js/contenuti.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
