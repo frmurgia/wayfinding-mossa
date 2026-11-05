@@ -899,6 +899,33 @@
     return new Blob([buf]);
   }
 
+  function zipMolti(voci) { // voci: [{nome, dati: Uint8Array}]
+    const parti = [], centrali = [];
+    let off = 0;
+    for (const v of voci) {
+      let crc = 0xFFFFFFFF;
+      for (let i = 0; i < v.dati.length; i++) crc = CRC[(crc ^ v.dati[i]) & 0xFF] ^ (crc >>> 8);
+      crc = (crc ^ 0xFFFFFFFF) >>> 0;
+      const n = new TextEncoder().encode(v.nome);
+      const loc = new DataView(new ArrayBuffer(30));
+      loc.setUint32(0, 0x04034b50, true); loc.setUint16(4, 20, true); loc.setUint16(6, 0x0800, true);
+      loc.setUint16(10, 0, true); loc.setUint16(12, 0x21, true); loc.setUint32(14, crc, true);
+      loc.setUint32(18, v.dati.length, true); loc.setUint32(22, v.dati.length, true); loc.setUint16(26, n.length, true);
+      const cen = new DataView(new ArrayBuffer(46));
+      cen.setUint32(0, 0x02014b50, true); cen.setUint16(4, 20, true); cen.setUint16(6, 20, true); cen.setUint16(8, 0x0800, true);
+      cen.setUint16(14, 0x21, true); cen.setUint32(16, crc, true); cen.setUint32(20, v.dati.length, true); cen.setUint32(24, v.dati.length, true);
+      cen.setUint16(28, n.length, true); cen.setUint32(42, off, true);
+      parti.push(new Uint8Array(loc.buffer), n, v.dati);
+      centrali.push(new Uint8Array(cen.buffer), n);
+      off += 30 + n.length + v.dati.length;
+    }
+    const lc = centrali.reduce((a, b) => a + b.length, 0);
+    const fine = new DataView(new ArrayBuffer(22));
+    fine.setUint32(0, 0x06054b50, true); fine.setUint16(8, voci.length, true); fine.setUint16(10, voci.length, true);
+    fine.setUint32(12, lc, true); fine.setUint32(16, off, true);
+    return new Blob(parti.concat(centrali, [new Uint8Array(fine.buffer)]));
+  }
+
   // dentro claude.ai i file passano dalla capability "downloads"; fuori, da un normale link
   let scaricamenti = null;
   if (window.claude && window.claude.use) window.claude.use('downloads').then(d => { scaricamenti = d; }).catch(() => {});
@@ -1017,11 +1044,61 @@
       box.querySelectorAll('[data-apri]').forEach(b => b.addEventListener('click', () => { chiudiScheda(); caricaEsempio(b.dataset.apri, { progresso: 1 }); }));
       box.querySelectorAll('[data-presenta]').forEach(b => b.addEventListener('click', () => { chiudiScheda(); avviaPresentazione(+b.dataset.presenta); }));
       preparaAnteprime();
+    } else if (nome === 'pittogrammi') {
+      box.innerHTML = `<h1>Pittogrammi</h1>
+      <p class="sottotitolo">${Object.keys(Forme.GLIFI).length - 1} segni disegnati su una griglia 10 × 10 con un solo spessore di linea e le estremità arrotondate.
+      Ognuno si stampa a parte (nero, faccia a vista sul piatto) e si innesta con i perni sulla tessera 60 × 60 mm.</p>
+      <div class="riga-bottoni"><button class="primario" id="pitTutti">Scarica tutti gli STL (.zip)</button><button id="pitTavola">Tavola da stampare su carta (SVG)</button></div>
+      ${Forme.CATEGORIE_GLIFI.map(c => `<h2>${c.nome}</h2><div class="glifi">${c.ids.map(id => `
+        <div class="glifo"><div class="disegno">${Forme.svgGlifo(id, { griglia: true, margine: 0.4 })}</div>
+        <b>${Forme.GLIFI[id].nome}</b>
+        <div class="riga-bottoni"><button data-g-apri="${id}" class="primario">Su tessera</button><button data-g-stl="${id}">STL</button></div></div>`).join('')}</div>`).join('')}`;
+      box.querySelectorAll('[data-g-apri]').forEach(b => b.addEventListener('click', () => { chiudiScheda(); apriGlifo(b.dataset.gApri); }));
+      box.querySelectorAll('[data-g-stl]').forEach(b => b.addEventListener('click', () => {
+        const g = pezziGlifo(b.dataset.gStl);
+        scarica(new Blob([STL.scrivi(g.pittogramma, 'PIEGA pittogramma ' + b.dataset.gStl)]), `pittogramma_${b.dataset.gStl}.stl`);
+      }));
+      $('pitTutti').addEventListener('click', () => {
+        const voci = [];
+        for (const c of Forme.CATEGORIE_GLIFI) for (const id of c.ids) {
+          const g = pezziGlifo(id);
+          voci.push({ nome: `pittogrammi/${id}_pittogramma.stl`, dati: new Uint8Array(STL.scrivi(g.pittogramma, 'PIEGA ' + id)) });
+          voci.push({ nome: `tessere/${id}_tessera.stl`, dati: new Uint8Array(STL.scrivi(g.posStampa, 'PIEGA tessera ' + id)) });
+        }
+        scarica(zipMolti(voci), 'pittogrammi-piega.zip');
+      });
+      $('pitTavola').addEventListener('click', () => scarica(new Blob([tavolaSVG()], { type: 'image/svg+xml' }), 'tavola-pittogrammi.svg'));
     } else if (nome === 'agganci') box.innerHTML = Contenuti.agganci(AGGANCI);
     else box.innerHTML = Contenuti.guida();
     $('sovrapposto').classList.remove('nascosto');
     $('sovrapposto').querySelector('.foglio').scrollTop = 0;
   }
+  // tessera 60×60 + pittogramma a innesto per un segno
+  function pezziGlifo(id) {
+    const spec = FORME.tessera.costruisci({ A: 60, glifo: id }, 1.6);
+    return Trama.genera({ area: spec.area, rilievi: spec.rilievi, larghezzaRilievo: S.rilievo.w || 3.2, altezzaRilievo: S.rilievo.h || 1.6,
+      pittogramma: 'separato', trama: S.trama, spessore: 1.6 });
+  }
+  function apriGlifo(id) {
+    S.sorgente = 'forma'; S.forma = 'tessera'; S.par = { A: 60, glifo: id }; S.esempio = null; S.pieghe = []; S.sel = -1;
+    S.pittogramma = 'separato';
+    aggiornaPannello(); V2.adattata = false; ricalcolaSubito(3, true);
+  }
+  function tavolaSVG() {
+    const cel = 26, out = [];
+    let h = 8;
+    for (const c of Forme.CATEGORIE_GLIFI) {
+      out.push(`<text x="5" y="${h + 6}" font-size="5" font-family="Helvetica,Arial" font-weight="bold">${c.nome}</text>`); h += 9;
+      c.ids.forEach((id, i) => {
+        const x = 5 + (i % 7) * cel, y = h + Math.floor(i / 7) * (cel + 6);
+        out.push(`<g transform="translate(${x},${y})">${Forme.svgGlifo(id, { griglia: true, dimensione: 22, margine: 0 })}<text x="11" y="26.5" font-size="3" text-anchor="middle" font-family="Helvetica,Arial">${Forme.GLIFI[id].nome}</text></g>`);
+      });
+      h += Math.ceil(c.ids.length / 7) * (cel + 6) + 3;
+    }
+    const W = 7 * cel + 10;
+    return `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${h}mm" viewBox="0 0 ${W} ${h}"><rect width="100%" height="100%" fill="#fff"/>${out.join('')}</svg>`;
+  }
+
   function chiudiScheda() { $('sovrapposto').classList.add('nascosto'); }
 
   // anteprime degli esempi renderizzate con un secondo renderer

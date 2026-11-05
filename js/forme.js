@@ -118,10 +118,108 @@
         { pts: [[4.3, 6.4], [4.5, 2.3]] }, { pts: [[5.7, 6.4], [5.5, 2.3]] }
       ]
     },
+    freccia_ne: { nome: 'Freccia ↗', tratti: [{ pts: [[1.5, 1.5], [8.5, 8.5]] }, { pts: [[3.6, 8.5], [8.5, 8.5], [8.5, 3.6]] }] },
+    // persone e servizi
+    donna: {
+      nome: 'Donna', tratti: [
+        { pts: cerchio(5, 8.3, 1.1, 18), chiusa: true },
+        { pts: [[3.3, 2.7], [6.7, 2.7], [5.8, 6.3], [4.2, 6.3]], chiusa: true },
+        { pts: [[4.3, 2.7], [4.3, 0.6]] }, { pts: [[5.7, 2.7], [5.7, 0.6]] }
+      ]
+    },
+    uomo: {
+      nome: 'Uomo', tratti: [
+        { pts: cerchio(5, 8.3, 1.1, 18), chiusa: true },
+        { pts: [[3.7, 6.4], [6.3, 6.4], [6.1, 2.8], [3.9, 2.8]], chiusa: true },
+        { pts: [[4.4, 2.8], [4.4, 0.6]] }, { pts: [[5.6, 2.8], [5.6, 0.6]] }
+      ]
+    },
+    bagni: {
+      nome: 'Bagni', tratti: [
+        { pts: cerchio(2.9, 8.2, 0.95, 16), chiusa: true },
+        { pts: [[1.4, 3.1], [4.4, 3.1], [3.6, 6.5], [2.2, 6.5]], chiusa: true },
+        { pts: [[2.3, 3.1], [2.3, 0.7]] }, { pts: [[3.5, 3.1], [3.5, 0.7]] },
+        { pts: cerchio(7.1, 8.2, 0.95, 16), chiusa: true },
+        { pts: [[6, 6.5], [8.2, 6.5], [8, 3.1], [6.2, 3.1]], chiusa: true },
+        { pts: [[6.6, 3.1], [6.6, 0.7]] }, { pts: [[7.6, 3.1], [7.6, 0.7]] }
+      ]
+    },
+    accessibile: {
+      nome: 'Accessibile', tratti: [
+        { pts: cerchio(4.4, 8.6, 0.9, 16), chiusa: true },
+        { pts: [[4.3, 7], [4.3, 4.3], [7, 4.3], [8.1, 1.1]] }, { pts: [[4.3, 6], [6.6, 6]] },
+        { pts: arco(4.6, 3.3, 2.6, 125, 395, 22) }
+      ]
+    },
+    acqua: {
+      nome: 'Acqua', tratti: [
+        { pts: [[5, 9.3]].concat(arco(5, 3.6, 3.1, 42, -222, 24)), chiusa: true },
+        { pts: arco(5, 3.6, 1.6, 200, 260, 6) }
+      ]
+    },
+    // luoghi della scuola
+    aula: {
+      nome: 'Aula', tratti: [
+        { pts: rett(1, 4.8, 9, 9.2), chiusa: true },
+        { pts: [[2.4, 7.5], [5.2, 7.5]] },
+        { pts: [[1.8, 2.6], [8.2, 2.6]] }, { pts: [[2.6, 2.6], [2.6, 0.8]] }, { pts: [[7.4, 2.6], [7.4, 0.8]] }
+      ]
+    },
+    biblioteca: {
+      nome: 'Biblioteca', tratti: [
+        { pts: rett(1.2, 1, 3, 8.6), chiusa: true },
+        { pts: [[3, 7.4], [4.8, 7.4], [4.8, 1]] },
+        { pts: [[5.4, 1.3], [7.1, 0.8], [9, 7.6], [7.3, 8.1]], chiusa: true },
+        { pts: [[1, 1], [9.2, 1]] }
+      ]
+    },
+    informatica: {
+      nome: 'Informatica', tratti: [
+        { pts: rett(1, 3.6, 9, 9), chiusa: true },
+        { pts: [[5, 3.6], [5, 1.3]] }, { pts: [[3, 1.3], [7, 1.3]] }
+      ]
+    },
+    stampa3d: {
+      nome: 'Stampa 3D', tratti: [
+        { pts: rett(1, 0.8, 9, 9.2), chiusa: true },
+        { pts: [[1, 7.3], [9, 7.3]] },
+        { pts: [[4.2, 7.3], [4.2, 5.8], [5, 5], [5.8, 5.8], [5.8, 7.3]] },
+        { pts: [[3.4, 0.8], [3.4, 3.2], [6.6, 3.2], [6.6, 0.8]] }
+      ]
+    },
+    palestra: {
+      nome: 'Palestra', tratti: [
+        { pts: [[2.4, 5], [7.6, 5]] },
+        { pts: rett(1, 2.8, 2.4, 7.2), chiusa: true }, { pts: rett(7.6, 2.8, 9, 7.2), chiusa: true }
+      ]
+    },
+    segreteria: {
+      nome: 'Segreteria', tratti: [
+        { pts: cerchio(5, 8.2, 1.1, 18), chiusa: true },
+        { pts: [[3, 4.4], [3, 6.3], [7, 6.3], [7, 4.4]] },
+        { pts: [[1, 4.4], [9, 4.4]] }, { pts: [[2, 4.4], [2, 0.8]] }, { pts: [[8, 4.4], [8, 0.8]] }
+      ]
+    },
+    bici: {
+      nome: 'Bici', tratti: [
+        { pts: cerchio(2.5, 3, 1.9, 22), chiusa: true }, { pts: cerchio(7.5, 3, 1.9, 22), chiusa: true },
+        { pts: [[2.5, 3], [4.4, 6.4], [6.7, 6.4], [7.5, 3]] }, { pts: [[4.4, 6.4], [4.1, 7.7], [5.3, 7.7]] }, { pts: [[6.7, 6.4], [6.3, 8.2], [7.3, 8.2]] }
+      ]
+    },
+    parcheggio: {
+      nome: 'Parcheggio', tratti: [
+        { pts: [[3, 0.8], [3, 9.2], [5.8, 9.2]].concat(arco(5.8, 6.9, 2.3, 90, -90, 14)).concat([[3, 4.6]]) }
+      ]
+    },
+    // numeri dei piani
+    n0: { nome: 'Piano 0', tratti: [{ pts: arco(5, 6.6, 2.6, 0, 180, 14).concat(arco(5, 3.4, 2.6, 180, 360, 14)), chiusa: true }] },
+    n1: { nome: 'Piano 1', tratti: [{ pts: [[3.2, 7.4], [5.6, 9.2], [5.6, 0.8]] }] },
+    n2: { nome: 'Piano 2', tratti: [{ pts: arco(5, 6.6, 2.6, 160, -30, 16).concat([[2.4, 0.8], [7.6, 0.8]]) }] },
+    n3: { nome: 'Piano 3', tratti: [{ pts: arco(5, 7.1, 2.1, 150, -90, 14).concat(arco(5, 2.9, 2.1, 90, -150, 14)) }] },
     wc: {
       nome: 'WC', tratti: [
-        { pts: [[0.6, 7.6], [1.8, 2.4], [3.1, 6], [4.4, 2.4], [5.6, 7.6]] },
-        { pts: arco(8.1, 5, 2.6, 50, 310, 16) }
+        { pts: [[0.6, 7.4], [1.7, 2.6], [2.9, 6], [4.1, 2.6], [5.2, 7.4]] },
+        { pts: arco(8.1, 5, 2.3, 50, 310, 16) }
       ]
     }
   };
@@ -140,6 +238,13 @@
   }
 
   const opzGlifi = Object.keys(GLIFI).map(k => [k, GLIFI[k].nome]);
+  const CATEGORIE_GLIFI = [
+    { nome: 'Direzioni', ids: ['freccia', 'freccia_su', 'freccia_ne', 'freccia_diag', 'scale', 'ascensore', 'uscita'] },
+    { nome: 'Persone e servizi', ids: ['persona', 'donna', 'uomo', 'bagni', 'wc', 'accessibile', 'info', 'caffe', 'acqua'] },
+    { nome: 'Luoghi della scuola', ids: ['aula', 'laboratorio', 'informatica', 'stampa3d', 'biblioteca', 'palestra', 'segreteria', 'bici', 'parcheggio'] },
+    { nome: 'Differenziata', ids: ['plastica', 'carta', 'vetro', 'organico', 'secco', 'riciclo'] },
+    { nome: 'Piani', ids: ['n0', 'n1', 'n2', 'n3'] }
+  ];
   const glifoRetro = (id, cx, cy, lato) => /^freccia/.test(id) ? glifo(id, cx, cy, lato, 0, true) : glifo(id, cx, cy, lato, 180);
 
   // fascia cerniera sul lato mobile (dove la plastica si curva)
@@ -729,7 +834,23 @@
     marrone: { nome: 'Marrone', hex: '#7a5232' }
   };
 
-  const Forme = { FORME, ESEMPI, AGGANCI, GLIFI, COLORI, glifo, parametriDefault, rett, cerchio };
+  /* pittogramma come SVG su griglia 10×10 (y verso l'alto). linea = spessore in unità di griglia */
+  function svgGlifo(id, opz) {
+    opz = opz || {};
+    const g = GLIFI[id] || GLIFI.nessuno;
+    const linea = opz.linea || 0.73, colore = opz.colore || '#1d1d1b', m = opz.margine === undefined ? 0.6 : opz.margine;
+    const f = (v) => +v.toFixed(3);
+    const griglia = opz.griglia ? Array.from({ length: 11 }, (_, i) =>
+      `<line x1="${i}" y1="0" x2="${i}" y2="10" stroke="${opz.coloreGriglia || '#d9d8d2'}" stroke-width="0.04"/><line x1="0" y1="${i}" x2="10" y2="${i}" stroke="${opz.coloreGriglia || '#d9d8d2'}" stroke-width="0.04"/>`).join('') : '';
+    const tratti = g.tratti.map(t => {
+      const pts = t.pts.map(q => `${f(q[0])},${f(10 - q[1])}`).join(' ');
+      return t.chiusa ? `<polygon points="${pts}"/>` : `<polyline points="${pts}"/>`;
+    }).join('');
+    const attr = opz.dimensione ? `width="${opz.dimensione}" height="${opz.dimensione}"` : '';
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${-m} ${-m} ${10 + 2 * m} ${10 + 2 * m}" ${attr}>${griglia}<g fill="none" stroke="${colore}" stroke-width="${linea}" stroke-linecap="round" stroke-linejoin="round">${tratti}</g></svg>`;
+  }
+
+  const Forme = { FORME, ESEMPI, AGGANCI, GLIFI, CATEGORIE_GLIFI, COLORI, svgGlifo, glifo, parametriDefault, rett, cerchio };
   root.Forme = Forme;
   if (typeof module !== 'undefined' && module.exports) module.exports = Forme;
 })(typeof self !== 'undefined' ? self : globalThis);

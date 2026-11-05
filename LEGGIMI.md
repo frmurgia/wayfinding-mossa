@@ -16,7 +16,8 @@ Dal pezzo piatto (STL, STEP o una forma del corso) all’oggetto piegato con **c
 | Scheda | A cosa serve |
 |---|---|
 | **Laboratorio** (pagina principale) | 1 pezzo piatto (forma del corso o file) · 2 trama e stampa · 3 pieghe · 4 esporta |
-| **Esempi** | 8 oggetti pronti per la presentazione del corso, con anteprima |
+| **Esempi** | gli oggetti pronti per la presentazione del corso, con anteprima |
+| **Pittogrammi** | 35 segni (direzioni, servizi, luoghi della scuola, differenziata, piani): STL del pezzo nero + tessera, tutti in un .zip, tavola SVG per la carta |
 | **▶ Presenta** | schermo intero: ogni esempio si piega e si apre da solo, con didascalia. Frecce ← → per cambiare, Esc per uscire |
 | **Agganci** | i 4 sistemi di aggancio proposti (arpione, clip a U, gancio ripiegato, viti) |
 | **Guida** | percorso del corso, impostazioni slicer, piegatura con acqua calda, regole di progetto |
@@ -36,8 +37,11 @@ Dal pezzo piatto (STL, STEP o una forma del corso) all’oggetto piegato con **c
 - **Cartamodello SVG** — contorno e pieghe in scala 1:1, da stampare su carta e provare a piegare.
 - **Salva / Apri progetto** — file `.piega.json` (contiene anche l’STL importato).
 
+## Online
+https://frmurgia.github.io/wayfinding-mossa/
+
 ## Cartella `esempi/`
-STL piatti (da stampare), STL piegati e cartamodelli SVG di tutti gli esempi. Elenco con pesi e ingombri in `esempi/ELENCO.md`.
+STL piatti (da stampare), STL piegati e cartamodelli SVG di tutti gli esempi. Elenco con pesi e ingombri in `esempi/ELENCO.md`. In `esempi/pittogrammi/` tutti i pittogrammi (pezzo nero, tessera, disegno SVG e tavola).
 Per rigenerarli dopo una modifica alle forme: `node tools/esporta-esempi.js`.
 
 ## Struttura del codice
