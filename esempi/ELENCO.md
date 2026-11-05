@@ -1,6 +1,7 @@
 # Esempi pronti
 
 Generati da `node tools/esporta-esempi.js`. Strato 0,2 mm, linea 1,2 mm (ugello 0,4).
+`*_da-stampare.stl` = trama già modellata (metodo 1). `*_pieno-per-slicer.stl` = pezzo pieno con fori e asole, la trama la fa lo slicer (metodo 2, 0 strati sopra/sotto, 2 perimetri, griglia 12–20%).
 I pittogrammi sono file a parte (`*_pittogramma.stl`), da stampare in nero e innestare a pressione nei fori della tessera.
 
 | File | Esempio | Ingombro piatto (mm) | Strati | Peso PLA |

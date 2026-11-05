@@ -17,6 +17,9 @@ for (const es of Forme.ESEMPI) {
   const g = Trama.genera(Object.assign({}, spec, { cerniere: [], trama: es.trama, spessore: t, larghezzaRilievo: 3.2, altezzaRilievo: 1.6, pittogramma: 'separato' }));
   fs.writeFileSync(path.join(out, `${es.id}_da-stampare.stl`), Buffer.from(STL.scrivi(g.posStampa || g.pos, 'PIEGA ' + es.id)));
   if (g.pittogramma) fs.writeFileSync(path.join(out, `${es.id}_pittogramma.stl`), Buffer.from(STL.scrivi(g.pittogramma, 'PIEGA ' + es.id + ' pittogramma')));
+  // metodo 2: pezzo pieno (contorno, fori, asole) — la trama la fa lo slicer
+  const gp = Trama.genera(Object.assign({}, spec, { cerniere: [], trama: Object.assign({}, es.trama, { tipo: 'pieno' }), spessore: t, larghezzaRilievo: 3.2, altezzaRilievo: 1.6, pittogramma: 'separato' }));
+  fs.writeFileSync(path.join(out, `${es.id}_pieno-per-slicer.stl`), Buffer.from(STL.scrivi(gp.posStampa || gp.pos, 'PIEGA ' + es.id + ' pieno')));
   const m = Piega.prepara(g.pos, g.tag, spec.pieghe, spec.base, { spessore: t });
   const pieg = Piega.applica(m, spec.pieghe, 1, false);
   fs.writeFileSync(path.join(out, `${es.id}_piegato.stl`), Buffer.from(STL.scrivi(pieg, 'PIEGA ' + es.id + ' piegato')));
@@ -45,6 +48,7 @@ ${linee}
   console.log('✓', es.id);
 }
 fs.writeFileSync(path.join(out, 'ELENCO.md'), '# Esempi pronti\n\nGenerati da `node tools/esporta-esempi.js`. Strato 0,2 mm, linea 1,2 mm (ugello 0,4).\n' +
+  '`*_da-stampare.stl` = trama già modellata (metodo 1). `*_pieno-per-slicer.stl` = pezzo pieno con fori e asole, la trama la fa lo slicer (metodo 2, 0 strati sopra/sotto, 2 perimetri, griglia 12–20%).\n' +
   'I pittogrammi sono file a parte (`*_pittogramma.stl`), da stampare in nero e innestare a pressione nei fori della tessera.\n\n' + righe.join('\n') + '\n');
 console.log(righe.join('\n'));
 
@@ -62,6 +66,8 @@ for (const c of Forme.CATEGORIE_GLIFI) {
     const g = Trama.genera({ area: spec.area, rilievi: spec.rilievi, larghezzaRilievo: 3.2, altezzaRilievo: 1.6, pittogramma: 'separato', trama, spessore: 1.6 });
     fs.writeFileSync(path.join(dirP, `${id}_pittogramma.stl`), Buffer.from(STL.scrivi(g.pittogramma, 'PIEGA ' + id)));
     fs.writeFileSync(path.join(dirP, `${id}_tessera.stl`), Buffer.from(STL.scrivi(g.posStampa, 'PIEGA tessera ' + id)));
+    const gp = Trama.genera({ area: spec.area, rilievi: spec.rilievi, larghezzaRilievo: 3.2, altezzaRilievo: 1.6, pittogramma: 'separato', trama: { tipo: 'pieno' }, spessore: 1.6 });
+    fs.writeFileSync(path.join(dirP, `${id}_tessera-piena-per-slicer.stl`), Buffer.from(STL.scrivi(gp.posStampa, 'PIEGA tessera piena ' + id)));
     fs.writeFileSync(path.join(dirP, `${id}.svg`), '<?xml version="1.0" encoding="UTF-8"?>\n' + Forme.svgGlifo(id, { griglia: true, dimensione: '44mm', margine: 0 }));
     elenco.push(`- **${Forme.GLIFI[id].nome}** — \`${id}_pittogramma.stl\` (${g.perni.length} perni Ø${g.perni[0].d.toFixed(1)} mm)`);
   }
