@@ -100,6 +100,24 @@
     <p class="box-attenzione">Usa trame <b>uguali in ogni strato</b> (griglia, triangoli, nido d’ape 2D). Giroide, nido d’ape 3D e “rettilineo” cambiano direzione da uno strato all’altro: le linee si toccano poco e il pezzo si delamina quando lo pieghi.
     In PIEGA scegli “Come trama” dopo aver caricato il file per vedere un’anteprima.</p>
 
+    <h2>Primo strato e ritrazioni</h2>
+    <p>Una trama è fatta di centinaia di celle: lo slicer fa un giro attorno a ogni buco e tra un giro e l’altro <b>si sposta e ritrae</b>.
+    Sul primo strato questo dà linee che partono vuote, filamento consumato dall’estrusore e, con lo Z-hop attivo, l’ugello che urta le linee appena stese.
+    Le impostazioni qui sotto tengono gli spostamenti <b>sopra la plastica già stampata</b>, così non serve ritrarre.</p>
+    <table class="tab">
+      <tr><th>Cosa</th><th>PrusaSlicer</th><th>Bambu Studio / OrcaSlicer</th><th>Cura</th><th>Valore</th></tr>
+      <tr><td>Spostamenti dentro il pezzo</td><td>Avoid crossing perimeters ✓</td><td>Avoid crossing wall ✓</td><td>Combing mode: Within Infill (o All)</td><td>attivo</td></tr>
+      <tr><td>Ritrai solo se esci dal pezzo</td><td>Only retract when crossing perimeters ✓</td><td>Only retract when crossing wall / Reduce infill retraction ✓</td><td>(lo fa il combing)</td><td>attivo</td></tr>
+      <tr><td>Spostamento minimo per ritrarre</td><td>Minimum travel after retraction</td><td>Travel distance threshold</td><td>Retraction minimum travel</td><td>2–3 mm</td></tr>
+      <tr><td>Z-hop</td><td>Lift Z = 0 (o “Only lift Z above” 0,3)</td><td>Z hop = 0</td><td>Z hop when retracted ✗</td><td>spento sul 1° strato</td></tr>
+      <tr><td>Limite ritrazioni</td><td>—</td><td>—</td><td>Maximum retraction count 10 / window 5 mm</td><td>evita di mangiare il filo</td></tr>
+      <tr><td>Lunghezza ritrazione</td><td colspan="3">estrusore diretto 0,6–0,8 mm · bowden 3–5 mm · velocità 35–45 mm/s · “extra al riavvio” 0–0,05 mm</td><td></td></tr>
+      <tr><td>Primo strato</td><td colspan="3">altezza 0,2–0,25 mm · larghezza linea 120% · velocità 15–20 mm/s · +5 °C · ventola spenta</td><td></td></tr>
+      <tr><td>Adesione</td><td colspan="3">piatto pulito (alcool) · niente brim interno; se i bordi si alzano, brim solo esterno 3 mm</td><td></td></tr>
+    </table>
+    <p class="box-attenzione"><b>Se la trama è molto fitta</b> (passo &lt; 6 mm) conviene il <b>metodo 2</b>: in PIEGA scegli trama “Pieno”, esporta e lascia fare il riempimento allo slicer
+    (griglia o rombi, 0 strati sopra/sotto, 1 perimetro). Lo slicer stende linee lunghe e continue: quasi nessuna ritrazione. Ganci e linguette, però, vengono a trama anche loro.</p>
+
     <h2>Piegare con l’acqua calda</h2>
     <table class="tab">
       <tr><th>Materiale</th><th>Si ammorbidisce a circa</th><th>Acqua</th><th>Tempo</th></tr>

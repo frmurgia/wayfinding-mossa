@@ -361,6 +361,7 @@
     $('info').textContent = `Piatto ${w.toFixed(0)} × ${h.toFixed(0)} × ${maxZ.toFixed(1)} mm · ${(g.pos.length / 9).toLocaleString('it-IT')} triangoli`;
     $('infoStampa').innerHTML = `Ingombro ${w.toFixed(0)} × ${h.toFixed(0)} mm · ~${stratiTot} strati · circa <b>${grammi.toFixed(1)} g</b> di PLA` +
       (entra ? ' · <b style="color:#2b7a3d">entra nel piatto</b>' : ' · <b style="color:#d6423a">non entra nel piatto!</b>');
+    $('infoStampa').innerHTML += '<br>Slicer: evita di attraversare i perimetri, ritrai solo fuori dal pezzo, niente Z-hop al 1° strato (vedi Guida).';
     if (g.pittogramma) $('infoStampa').innerHTML += `<br>Pittogramma a parte: ~${grammiP.toFixed(1)} g, ${g.perni.length} perni Ø${g.perni[0] ? g.perni[0].d.toFixed(1) : '–'} mm a pressione.`;
     $('expPitto').classList.toggle('nascosto', !g.pittogramma);
     if (S.sorgente === 'forma' && S.spec && S.spec.copia) $('infoStampa').innerHTML += '<br><b>Stampa questo pezzo 2 volte</b>: le due metà sono identiche.';
