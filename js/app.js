@@ -425,6 +425,8 @@
         let val = q.tipo === 'sel' ? inp.value : q.tipo === 'bool' ? (inp.checked ? 1 : 0) : +inp.value;
         if (q.tipo !== 'sel' && q.tipo !== 'bool') { val = Math.min(q.max, Math.max(q.min, val || q.def)); inp.value = val; }
         S.par[q.k] = val;
+        // tessera pittogramma: la linea del segno cresce con il lato (3,2 mm ogni 60 mm)
+        if (S.forma === 'tessera' && q.k === 'A') { S.rilievo.w = +(3.2 * val / 60).toFixed(1); $('rLarg').value = S.rilievo.w; }
         programma(3);
       });
       box.appendChild(l);
