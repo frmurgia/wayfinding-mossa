@@ -64,6 +64,34 @@ Il sito, in “4 · Esporta”, calcola la percentuale giusta per il passo della
 | Trattini lungo linee e bordo | larghezza perimetri = linea ÷ 2 (0,6 mm per linee da 1,2) |
 | Anelli attorno al pittogramma | già corretto nei file: riscaricali |
 
+### PrusaSlicer passo passo (stampanti Prusa)
+
+Modalità **Esperto** (in alto a destra). Salva come preset “PIEGA trama” per non perderle.
+
+| Scheda → sezione | Impostazione | Metodo 2 (pieno + riempimento) | Metodo 1 (trama modellata) |
+|---|---|---|---|
+| Stampa → Strati e perimetri | Perimetri (Perimeters) | 2 | 2 |
+| | Strati solidi superiori / inferiori (Solid layers) | **0 / 0** | come da profilo |
+| | Posizione giunzione (Seam position) | Posteriore (Rear) | Posteriore (Rear) |
+| | Evita di attraversare i perimetri (Avoid crossing perimeters) | ✓ | ✓ |
+| Stampa → Riempimento | Densità (Fill density) | 15% (passo 6 mm) | — |
+| | Trama (Fill pattern) | Griglia (Grid) | — |
+| | Angolo riempimento (Fill angle) | 45° per i rombi, 0° per la griglia | — |
+| | Ritrai solo quando si attraversano i perimetri (Only retract when crossing perimeters) | ✓ | ✓ |
+| Stampa → Velocità | Spostamento (Travel) | ≥ 150 mm/s | ≥ 150 mm/s |
+| | Primo strato (First layer speed) | 20 mm/s | 20 mm/s |
+| Stampa → Avanzate | Larghezza estrusione perimetri e perimetri esterni | 0,45 | **0,6** |
+| | Larghezza estrusione riempimento (Infill) | **0,6** | — |
+| | Generatore perimetri (Perimeter generator) | Arachne | Classico (Classic) con 0,6 |
+| Filamento → Temperatura | Estrusore: primo strato / altri strati | 210 / 200 °C | 210 / 200 °C |
+| Filamento → Override (Filament overrides) | se c’è una ritrazione impostata qui, vince su quella della stampante | controlla | controlla |
+| Stampante → Estrusore 1 → Retrazione | Lunghezza (Length) | 0,8 mm (MK3S) / 0,7 (MK4) | idem |
+| | Solleva Z (Lift Z) | 0 | 0 |
+| | Spostamento minimo dopo la retrazione (Minimum travel after retraction) | 2 mm | 2 mm |
+| | Pulisci durante la retrazione (Wipe while retracting) | ✓ | ✓ |
+
+Ganci e linguette pieni (metodo 2): tasto destro sul pezzo → Aggiungi modificatore → Box, posizionalo sul gancio, poi aggiungi “Densità riempimento” = 100%.
+
 ### 4. Primo strato (vale per entrambi)
 
 Altezza 0,2–0,25 mm · larghezza linea 120% · velocità 15–20 mm/s · +5 °C · ventola spenta · piatto pulito con alcool.
