@@ -362,6 +362,15 @@
     $('infoStampa').innerHTML = `Ingombro ${w.toFixed(0)} × ${h.toFixed(0)} mm · ~${stratiTot} strati · circa <b>${grammi.toFixed(1)} g</b> di PLA` +
       (entra ? ' · <b style="color:#2b7a3d">entra nel piatto</b>' : ' · <b style="color:#d6423a">non entra nel piatto!</b>');
     $('infoStampa').innerHTML += '<br>Slicer: evita di attraversare i perimetri, ritrai solo fuori dal pezzo, niente Z-hop al 1° strato (vedi Guida).';
+    // metodo 2: valori per far generare la stessa trama allo slicer
+    if (S.sorgente === 'forma' || S.modoFile === 'trama') {
+      const tr = S.trama, w = 0.45, passo = tr.passo;
+      const fam = { griglia: 2, rombi: 2, linee: 1, triangoli: 3, nido: 2, onde: 2, pallini: 2 }[tr.tipo] || 2;
+      const dens = Math.min(100, Math.round(fam * w / passo * 100));
+      const nomi = { griglia: 'Griglia', rombi: 'Griglia a 45° (Cura: direzioni [30,150])', triangoli: 'Triangoli', nido: 'Nido d’ape', linee: 'Rettilineo', onde: 'Giroide (simile)', pallini: '— nessuno slicer fa i pallini: usa il metodo 1' };
+      $('infoStampa').innerHTML += `<br><b>Metodo 2 (riempimento dello slicer)</b>: trama “Pieno” qui, poi nello slicer 0 strati sopra/sotto, 2 perimetri, riempimento <b>${nomi[tr.tipo] || tr.tipo}</b>` +
+        (tr.tipo === 'pallini' ? '' : ` al <b>${dens}%</b> (Cura: distanza linee <b>${passo} mm</b>), larghezza linea riempimento 0,6 mm.`);
+    }
     if (g.pittogramma) $('infoStampa').innerHTML += `<br>Pittogramma a parte: ~${grammiP.toFixed(1)} g, ${g.perni.length} perni Ø${g.perni[0] ? g.perni[0].d.toFixed(1) : '–'} mm a pressione.`;
     $('expPitto').classList.toggle('nascosto', !g.pittogramma);
     if (S.sorgente === 'forma' && S.spec && S.spec.copia) $('infoStampa').innerHTML += '<br><b>Stampa questo pezzo 2 volte</b>: le due metà sono identiche.';

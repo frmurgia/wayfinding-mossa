@@ -89,13 +89,18 @@
     <h3>Metodo 1 — la trama la genera PIEGA (consigliato)</h3>
     <p>Esporta “STL da stampare”. Nello slicer: 2 perimetri, riempimento qualsiasi (le linee sono così sottili che diventano tutte perimetro),
     altezza strato come in PIEGA. Larghezza linea in PIEGA = circa 3 × ugello (1,2 mm con ugello 0,4).</p>
-    <h3>Metodo 2 — la trama la genera lo slicer</h3>
-    <p>Si carica il pezzo pieno (STL/STEP) e si tolgono pelle e pareti:</p>
+    <h3>Metodo 2 — la trama la genera lo slicer (consigliato per i pezzi piani)</h3>
+    <p>Linee lunghe e continue, quasi nessuna ritrazione, stampa più veloce. In PIEGA scegli trama <b>Pieno</b> ed esporta:
+    restano i fori per i perni e le asole, lo slicer ci fa il perimetro attorno (l’anello pieno viene da sé).
+    La percentuale giusta per il passo che hai scelto la trovi in “4 · Esporta”: per griglia e rombi è circa <b>2 × 0,45 / passo</b> (passo 6 mm → 15%).
+    Ganci e linguette: aggiungi un <b>modificatore</b> con riempimento 100% sopra di loro.</p>
     <table class="tab">
       <tr><th></th><th>PrusaSlicer</th><th>Bambu Studio</th><th>Cura</th></tr>
       <tr><td>Strati superiori / inferiori</td><td>0 / 0</td><td>0 / 0</td><td>Spessore sup./inf. 0</td></tr>
-      <tr><td>Perimetri</td><td>1 (fa da bordo)</td><td>Pareti 1</td><td>Linee parete 1</td></tr>
-      <tr><td>Riempimento</td><td>Griglia / Triangoli / Nido d’ape · 20–30%</td><td>Griglia / Triangoli · 20–30%</td><td>Griglia / Triangoli · 20–30%</td></tr>
+      <tr><td>Perimetri</td><td>2 (fanno da bordo)</td><td>Pareti 2</td><td>Linee parete 2</td></tr>
+      <tr><td>Riempimento</td><td>Griglia / Triangoli / Nido d’ape · 12–20%</td><td>Griglia / Triangoli · 12–20%</td><td>Griglia / Triangoli · distanza linee = passo</td></tr>
+      <tr><td>Larghezza linea riempimento</td><td>0,6 mm</td><td>0,6 mm</td><td>0,6 mm</td></tr>
+      <tr><td>Rombi</td><td>Griglia, angolo 45°</td><td>Griglia, angolo 45°</td><td>Direzioni linee riempimento [30,150]</td></tr>
     </table>
     <p class="box-attenzione">Usa trame <b>uguali in ogni strato</b> (griglia, triangoli, nido d’ape 2D). Giroide, nido d’ape 3D e “rettilineo” cambiano direzione da uno strato all’altro: le linee si toccano poco e il pezzo si delamina quando lo pieghi.
     In PIEGA scegli “Come trama” dopo aver caricato il file per vedere un’anteprima.</p>
