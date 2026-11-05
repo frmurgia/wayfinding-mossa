@@ -64,6 +64,11 @@ Il sito, in “4 · Esporta”, calcola la percentuale giusta per il passo della
 | Trattini lungo linee e bordo | larghezza perimetri = linea ÷ 2 (0,6 mm per linee da 1,2) |
 | Anelli attorno al pittogramma | già corretto nei file: riscaricali |
 
+### Profili pronti per la Prusa MK3S
+
+Nella cartella [`slicer/`](slicer/) ci sono due configurazioni da importare (PrusaSlicer → File → Importa → Importa configurazione):
+`PIEGA_MK3S_metodo2_riempimento-slicer.ini` (consigliato) e `PIEGA_MK3S_metodo1_trama-modellata.ini`. In [slicer/LEGGIMI.md](slicer/LEGGIMI.md) l’elenco delle modifiche.
+
 ### PrusaSlicer passo passo (stampanti Prusa)
 
 Modalità **Esperto** (in alto a destra). Salva come preset “PIEGA trama” per non perderle.
