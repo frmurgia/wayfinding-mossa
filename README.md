@@ -49,11 +49,20 @@ Il sito, in “4 · Esporta”, calcola la percentuale giusta per il passo della
 
 | Impostazione | Valore |
 |---|---|
-| Perimetri | 2 (le linee sono sottili: diventano tutte perimetro) |
+| Perimetri | 2, **larghezza perimetri 0,6 mm** (= linea 1,2 ÷ 2: niente riempimenti a pezzetti tra i due perimetri) |
 | Spostamenti | **evita di attraversare i perimetri** / combing “dentro il riempimento” |
 | Ritrazione | solo quando esci dal pezzo · spostamento minimo 2–3 mm · diretto 0,6–0,8 mm, bowden 3–5 mm |
 | Z-hop | **spento** (almeno sul primo strato) |
 | Cura | numero massimo di ritrazioni 10 in 5 mm |
+
+### Problemi visti sulle prime stampe
+
+| Cosa si vede | Cosa fare |
+|---|---|
+| Fili sottili dentro le celle | spostamenti dentro il pezzo, ritrazione 0,8 mm (diretto) / 4 mm (bowden), 195–200 °C, spostamenti ≥ 150 mm/s, filamento asciutto |
+| Puntini o “x” agli incroci | cucitura posteriore/allineata, wipe attivo, coasting (Cura), pressure/linear advance calibrato — oppure metodo 2 |
+| Trattini lungo linee e bordo | larghezza perimetri = linea ÷ 2 (0,6 mm per linee da 1,2) |
+| Anelli attorno al pittogramma | già corretto nei file: riscaricali |
 
 ### 4. Primo strato (vale per entrambi)
 

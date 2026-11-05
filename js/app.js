@@ -361,7 +361,7 @@
     $('info').textContent = `Piatto ${w.toFixed(0)} × ${h.toFixed(0)} × ${maxZ.toFixed(1)} mm · ${(g.pos.length / 9).toLocaleString('it-IT')} triangoli`;
     $('infoStampa').innerHTML = `Ingombro ${w.toFixed(0)} × ${h.toFixed(0)} mm · ~${stratiTot} strati · circa <b>${grammi.toFixed(1)} g</b> di PLA` +
       (entra ? ' · <b style="color:#2b7a3d">entra nel piatto</b>' : ' · <b style="color:#d6423a">non entra nel piatto!</b>');
-    $('infoStampa').innerHTML += '<br>Slicer: evita di attraversare i perimetri, ritrai solo fuori dal pezzo, niente Z-hop al 1° strato (vedi Guida).';
+    $('infoStampa').innerHTML += `<br>Slicer: larghezza perimetri <b>${(S.trama.larghezza / 2).toFixed(2).replace('.', ',')} mm</b> (= linea ÷ 2), evita di attraversare i perimetri, ritrai solo fuori dal pezzo, niente Z-hop al 1° strato (vedi Guida).`;
     // metodo 2: valori per far generare la stessa trama allo slicer
     if (S.sorgente === 'forma' || S.modoFile === 'trama') {
       const tr = S.trama, w = 0.45, passo = tr.passo;

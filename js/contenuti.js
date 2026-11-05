@@ -120,6 +120,14 @@
       <tr><td>Primo strato</td><td colspan="3">altezza 0,2–0,25 mm · larghezza linea 120% · velocità 15–20 mm/s · +5 °C · ventola spenta</td><td></td></tr>
       <tr><td>Adesione</td><td colspan="3">piatto pulito (alcool) · niente brim interno; se i bordi si alzano, brim solo esterno 3 mm</td><td></td></tr>
     </table>
+    <h3>Problemi visti sulle prime stampe</h3>
+    <table class="tab">
+      <tr><th>Cosa si vede</th><th>Perché</th><th>Cosa fare</th></tr>
+      <tr><td>Fili sottili dentro le celle</td><td>il filo cola durante gli spostamenti sopra i buchi</td><td>spostamenti dentro il pezzo, ritrazione 0,8 mm (diretto) / 4 mm (bowden), temperatura −5/−10 °C (195–200 °C), velocità di spostamento ≥ 150 mm/s, filamento asciutto (4 h a 45–50 °C se è stato all’aria)</td></tr>
+      <tr><td>Puntini o “x” a ogni incrocio</td><td>ogni cella è un giro chiuso: inizio e fine del giro (cucitura) cadono sugli spigoli; dove due linee si incrociano si accumula plastica</td><td>cucitura “posteriore” o “allineata”, <b>pulitura (wipe) attiva</b>, Cura: coasting 0,04 mm³, linear/pressure advance calibrato. Oppure metodo 2: lo slicer stende linee che attraversano gli incroci senza fermarsi</td></tr>
+      <tr><td>Trattini o solchi lungo le linee e il bordo</td><td>la linea da 1,2 mm non è un multiplo della larghezza dei perimetri: tra i due perimetri resta uno spazio che lo slicer riempie a pezzetti</td><td><b>larghezza perimetri = linea ÷ 2</b>: 0,6 mm per linee da 1,2 mm (bordo 2,4 = 4 perimetri). Oppure in PIEGA linea 0,9 mm con perimetri da 0,45</td></tr>
+      <tr><td>Anelli che spuntano attorno al pittogramma</td><td>(versione precedente dei file)</td><td>già corretto: sotto il segno ora c’è una base piena nascosta, i perni stanno lontani dalle punte. Riscarica i file</td></tr>
+    </table>
     <p class="box-attenzione"><b>Se la trama è molto fitta</b> (passo &lt; 6 mm) conviene il <b>metodo 2</b>: in PIEGA scegli trama “Pieno”, esporta e lascia fare il riempimento allo slicer
     (griglia o rombi, 0 strati sopra/sotto, 1 perimetro). Lo slicer stende linee lunghe e continue: quasi nessuna ritrazione. Ganci e linguette, però, vengono a trama anche loro.</p>
 
