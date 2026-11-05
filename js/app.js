@@ -1058,15 +1058,21 @@
       box.innerHTML = `<h1>Pittogrammi</h1>
       <p class="sottotitolo">${Object.keys(Forme.GLIFI).length - 1} segni disegnati su una griglia 10 × 10 con un solo spessore di linea e le estremità arrotondate.
       Ognuno si stampa a parte (nero, faccia a vista sul piatto) e si innesta con i perni sulla tessera 60 × 60 mm.</p>
-      <div class="riga-bottoni"><button class="primario" id="pitTutti">Scarica tutti gli STL (.zip)</button><button id="pitTavola">Tavola da stampare su carta (SVG)</button></div>
+      <div class="riga-bottoni">
+        <label class="campo inline"><span>Lato tessera</span><select id="pitLato"><option value="60">60 mm</option><option value="80">80 mm</option><option value="100">100 mm</option></select></label>
+        <button class="primario" id="pitTutti">Scarica tutti gli STL (.zip)</button><button id="pitTavola">Tavola da stampare su carta (SVG)</button></div>
+      <p class="nota" id="pitNota"></p>
       ${Forme.CATEGORIE_GLIFI.map(c => `<h2>${c.nome}</h2><div class="glifi">${c.ids.map(id => `
         <div class="glifo"><div class="disegno">${Forme.svgGlifo(id, { griglia: true, margine: 0.4 })}</div>
         <b>${Forme.GLIFI[id].nome}</b>
         <div class="riga-bottoni"><button data-g-apri="${id}" class="primario">Su tessera</button><button data-g-stl="${id}">STL</button></div></div>`).join('')}</div>`).join('')}`;
+      const notaLato = () => { $('pitNota').textContent = `Tessera ${latoTessera} × ${latoTessera} mm · linea del segno ${lineaPer(latoTessera)} mm · spessori 1,6 mm. Non scalare i file nello slicer: genera la misura giusta qui.`; };
+      $('pitLato').value = String(latoTessera); notaLato();
+      $('pitLato').addEventListener('change', () => { latoTessera = +$('pitLato').value; notaLato(); });
       box.querySelectorAll('[data-g-apri]').forEach(b => b.addEventListener('click', () => { chiudiScheda(); apriGlifo(b.dataset.gApri); }));
       box.querySelectorAll('[data-g-stl]').forEach(b => b.addEventListener('click', () => {
         const g = pezziGlifo(b.dataset.gStl);
-        scarica(new Blob([STL.scrivi(g.pittogramma, 'PIEGA pittogramma ' + b.dataset.gStl)]), `pittogramma_${b.dataset.gStl}.stl`);
+        scarica(new Blob([STL.scrivi(g.pittogramma, 'PIEGA pittogramma ' + b.dataset.gStl)]), `pittogramma_${b.dataset.gStl}_${latoTessera}mm.stl`);
       }));
       $('pitTutti').addEventListener('click', () => {
         const voci = [];
@@ -1075,7 +1081,7 @@
           voci.push({ nome: `pittogrammi/${id}_pittogramma.stl`, dati: new Uint8Array(STL.scrivi(g.pittogramma, 'PIEGA ' + id)) });
           voci.push({ nome: `tessere/${id}_tessera.stl`, dati: new Uint8Array(STL.scrivi(g.posStampa, 'PIEGA tessera ' + id)) });
         }
-        scarica(zipMolti(voci), 'pittogrammi-piega.zip');
+        scarica(zipMolti(voci), `pittogrammi-piega-${latoTessera}mm.zip`);
       });
       $('pitTavola').addEventListener('click', () => scarica(new Blob([tavolaSVG()], { type: 'image/svg+xml' }), 'tavola-pittogrammi.svg'));
     } else if (nome === 'agganci') box.innerHTML = Contenuti.agganci(AGGANCI);
@@ -1084,14 +1090,16 @@
     $('sovrapposto').querySelector('.foglio').scrollTop = 0;
   }
   // tessera 60×60 + pittogramma a innesto per un segno
+  let latoTessera = 60;
+  const lineaPer = (lato) => +(3.2 * lato / 60).toFixed(1);   // la linea cresce con la tessera
   function pezziGlifo(id) {
-    const spec = FORME.tessera.costruisci({ A: 60, glifo: id }, 1.6);
-    return Trama.genera({ area: spec.area, rilievi: spec.rilievi, larghezzaRilievo: S.rilievo.w || 3.2, altezzaRilievo: S.rilievo.h || 1.6,
+    const spec = FORME.tessera.costruisci({ A: latoTessera, glifo: id }, 1.6);
+    return Trama.genera({ area: spec.area, rilievi: spec.rilievi, larghezzaRilievo: lineaPer(latoTessera), altezzaRilievo: 1.6,
       pittogramma: 'separato', trama: S.trama, spessore: 1.6 });
   }
   function apriGlifo(id) {
-    S.sorgente = 'forma'; S.forma = 'tessera'; S.par = { A: 60, glifo: id }; S.esempio = null; S.pieghe = []; S.sel = -1;
-    S.pittogramma = 'separato';
+    S.sorgente = 'forma'; S.forma = 'tessera'; S.par = { A: latoTessera, glifo: id }; S.esempio = null; S.pieghe = []; S.sel = -1;
+    S.pittogramma = 'separato'; S.rilievo = { w: lineaPer(latoTessera), h: 1.6 }; S.strati = 8;
     aggiornaPannello(); V2.adattata = false; ricalcolaSubito(3, true);
   }
   function tavolaSVG() {

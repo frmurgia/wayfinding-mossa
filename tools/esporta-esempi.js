@@ -52,29 +52,36 @@ fs.writeFileSync(path.join(out, 'ELENCO.md'), '# Esempi pronti\n\nGenerati da `n
   'I pittogrammi sono file a parte (`*_pittogramma.stl`), da stampare in nero e innestare a pressione nei fori della tessera.\n\n' + righe.join('\n') + '\n');
 console.log(righe.join('\n'));
 
-/* ---------- libreria pittogrammi: pezzo nero + tessera 60×60 + disegno ---------- */
+/* ---------- libreria pittogrammi: pezzo nero + tessera + disegno, in due misure ---------- */
 const dirP = path.join(out, 'pittogrammi');
 fs.mkdirSync(dirP, { recursive: true });
 const trama = { tipo: 'rombi', passo: 7, larghezza: 1.2, angolo: 0, bordo: 2.4 };
-const elenco = ['# Pittogrammi', '', 'Per ogni segno: `*_pittogramma.stl` (nero, si stampa così com’è: faccia a vista sul piatto, perni verso l’alto),',
-  '`*_tessera.stl` (60 × 60 mm, trama a rombi, con i fori per i perni) e `*.svg` (disegno su griglia 10 × 10).', '',
+const elenco = ['# Pittogrammi', '', 'Due misure: `60mm/` e `100mm/` (tessera 60 o 100 mm, linea 3,2 o 5,3 mm, spessori sempre 1,6 mm). Non scalare i file nello slicer.', '',
+  'Per ogni segno: `*_pittogramma.stl` (si stampa così com’è: faccia a vista sul piatto, perni verso l’alto),',
+  '`*_tessera.stl` (trama a rombi già modellata), `*_tessera-piena-per-slicer.stl` (metodo 2) e `*.svg` (disegno su griglia 10 × 10).', '',
   '`tavola-pittogrammi.svg`: tutti i segni su un foglio, da stampare in scala 1:1.', ''];
+for (const lato of [60, 100]) {
+  const d = path.join(dirP, lato + 'mm');
+  fs.mkdirSync(d, { recursive: true });
+  const w = +(3.2 * lato / 60).toFixed(1);
+  for (const c of Forme.CATEGORIE_GLIFI) for (const id of c.ids) {
+    const spec = Forme.FORME.tessera.costruisci({ A: lato, glifo: id }, 1.6);
+    const base = { area: spec.area, rilievi: spec.rilievi, larghezzaRilievo: w, altezzaRilievo: 1.6, pittogramma: 'separato', spessore: 1.6 };
+    const g = Trama.genera(Object.assign({}, base, { trama }));
+    const gp = Trama.genera(Object.assign({}, base, { trama: { tipo: 'pieno' } }));
+    fs.writeFileSync(path.join(d, `${id}_pittogramma.stl`), Buffer.from(STL.scrivi(g.pittogramma, 'PIEGA ' + id)));
+    fs.writeFileSync(path.join(d, `${id}_tessera.stl`), Buffer.from(STL.scrivi(g.posStampa, 'PIEGA tessera ' + id)));
+    fs.writeFileSync(path.join(d, `${id}_tessera-piena-per-slicer.stl`), Buffer.from(STL.scrivi(gp.posStampa, 'PIEGA tessera piena ' + id)));
+    if (lato === 60) fs.writeFileSync(path.join(dirP, `${id}.svg`), '<?xml version="1.0" encoding="UTF-8"?>\n' + Forme.svgGlifo(id, { griglia: true, dimensione: '44mm', margine: 0 }));
+  }
+}
 for (const c of Forme.CATEGORIE_GLIFI) {
   elenco.push(`## ${c.nome}`, '');
-  for (const id of c.ids) {
-    const spec = Forme.FORME.tessera.costruisci({ A: 60, glifo: id }, 1.6);
-    const g = Trama.genera({ area: spec.area, rilievi: spec.rilievi, larghezzaRilievo: 3.2, altezzaRilievo: 1.6, pittogramma: 'separato', trama, spessore: 1.6 });
-    fs.writeFileSync(path.join(dirP, `${id}_pittogramma.stl`), Buffer.from(STL.scrivi(g.pittogramma, 'PIEGA ' + id)));
-    fs.writeFileSync(path.join(dirP, `${id}_tessera.stl`), Buffer.from(STL.scrivi(g.posStampa, 'PIEGA tessera ' + id)));
-    const gp = Trama.genera({ area: spec.area, rilievi: spec.rilievi, larghezzaRilievo: 3.2, altezzaRilievo: 1.6, pittogramma: 'separato', trama: { tipo: 'pieno' }, spessore: 1.6 });
-    fs.writeFileSync(path.join(dirP, `${id}_tessera-piena-per-slicer.stl`), Buffer.from(STL.scrivi(gp.posStampa, 'PIEGA tessera piena ' + id)));
-    fs.writeFileSync(path.join(dirP, `${id}.svg`), '<?xml version="1.0" encoding="UTF-8"?>\n' + Forme.svgGlifo(id, { griglia: true, dimensione: '44mm', margine: 0 }));
-    elenco.push(`- **${Forme.GLIFI[id].nome}** — \`${id}_pittogramma.stl\` (${g.perni.length} perni Ø${g.perni[0].d.toFixed(1)} mm)`);
-  }
+  for (const id of c.ids) elenco.push(`- **${Forme.GLIFI[id].nome}** — \`${id}_…\``);
   elenco.push('');
 }
 fs.writeFileSync(path.join(dirP, 'ELENCO.md'), elenco.join('\n'));
-console.log('✓ pittogrammi:', Forme.CATEGORIE_GLIFI.reduce((a, c) => a + c.ids.length, 0));
+console.log('✓ pittogrammi:', Forme.CATEGORIE_GLIFI.reduce((a, c) => a + c.ids.length, 0), '× 2 misure');
 // tavola con tutti i segni (stessa impaginazione della scheda Pittogrammi del sito)
 {
   const cel = 26, outT = [];

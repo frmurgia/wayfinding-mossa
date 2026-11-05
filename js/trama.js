@@ -298,16 +298,35 @@
   */
   /* punti dei perni lungo le linee del pittogramma (campionamento del punto più lontano) */
   function puntiPerni(linee, quanti) {
+    // i perni stanno lungo le linee ma lontani dalle estremità (almeno 3,5 mm), così restano nascosti
     const campioni = [];
+    const E = 3.5;
     let lung = 0;
     for (const l of linee) {
       const pts = l.chiusa ? l.pts.concat([l.pts[0]]) : l.pts;
+      let tot = 0;
+      for (let i = 0; i + 1 < pts.length; i++) tot += Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
+      lung += tot;
+      const loc = [];
+      let s = 0;
       for (let i = 0; i + 1 < pts.length; i++) {
         const a = pts[i], b = pts[i + 1], d = Math.hypot(b[0] - a[0], b[1] - a[1]);
-        lung += d;
         const n = Math.max(1, Math.ceil(d / 0.5));
-        for (let k = 0; k <= n; k++) campioni.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]);
+        for (let k = 0; k <= n; k++) {
+          const sk = s + d * k / n;
+          if (l.chiusa || (sk >= E && sk <= tot - E)) loc.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]);
+        }
+        s += d;
       }
+      if (!loc.length && tot > 0) { // linea corta: solo il punto a metà
+        let acc = 0;
+        for (let i = 0; i + 1 < pts.length; i++) {
+          const a = pts[i], b = pts[i + 1], d = Math.hypot(b[0] - a[0], b[1] - a[1]);
+          if (acc + d >= tot / 2) { const u = (tot / 2 - acc) / d; loc.push([a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u]); break; }
+          acc += d;
+        }
+      }
+      campioni.push(...loc);
     }
     if (!campioni.length) return [];
     const N = quanti || Math.max(2, Math.min(4, Math.round(lung / 30)));
@@ -341,7 +360,8 @@
       perni = puntiPerni(spec.rilievi);
       spec = Object.assign({}, spec, {
         fori: (spec.fori || []).concat(perni.map(c => cerchioMm(c, rPerno, 20))),
-        pieni: (spec.pieni || []).concat(perni.map(c => cerchioMm(c, rPerno + 1.1, 24)))
+        // sotto il segno la tessera è piena, con la stessa forma del segno ma 0,4 mm più stretta: non si vede e regge i perni
+        pieniPaths: tratti(spec.rilievi, Math.max(wR - 0.4, rPerno * 2 + 0.9), true)
       });
     }
     let P = spec.areaPaths ? unione(spec.areaPaths) : unione(toPaths(spec.area || []));
@@ -369,7 +389,8 @@
       const trama = interseca(tratti(lineePattern(tr.tipo, bb, tr.passo, tr.angolo, origine, tr.larghezza), tr.larghezza, false), regioneTrama);
       const cern = barre.length ? interseca(tratti(barre, tr.larghezza, false), interseca(fasce, P)) : [];
       const bordo = tr.bordo > 0 ? sottrai(P, offsetChiuso(P, -tr.bordo)) : [];
-      const pieni = spec.pieni && spec.pieni.length ? interseca(unione(toPaths(spec.pieni)), P) : [];
+      const pieniTutti = (spec.pieni && spec.pieni.length ? toPaths(spec.pieni) : []).concat(spec.pieniPaths || []);
+      const pieni = pieniTutti.length ? interseca(unione(pieniTutti), P) : [];
       pezzi = unione([].concat(trama, cern, bordo, pieni, separato ? [] : interseca(rilieviPaths, P)));
     }
     pezzi = CL.Clipper.CleanPolygons(pezzi, 0.005 * S);
