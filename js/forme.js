@@ -127,19 +127,20 @@
   };
 
   // pittogramma -> tratti in mm (centro, lato, rotazione in gradi)
-  function glifo(id, cx, cy, lato, rot) {
+  function glifo(id, cx, cy, lato, rot, specchiaY) {
     const g = GLIFI[id] || GLIFI.nessuno;
     const a = (rot || 0) * PI / 180, c = Math.cos(a), s = Math.sin(a), k = lato / 10;
     return g.tratti.map(t => ({
       chiusa: !!t.chiusa,
       pts: t.pts.map(p => {
-        const x = (p[0] - 5) * k, y = (p[1] - 5) * k;
+        const x = (p[0] - 5) * k, y = (specchiaY ? 5 - p[1] : p[1] - 5) * k;
         return [cx + x * c - y * s, cy + x * s + y * c];
       })
     }));
   }
 
   const opzGlifi = Object.keys(GLIFI).map(k => [k, GLIFI[k].nome]);
+  const glifoRetro = (id, cx, cy, lato) => /^freccia/.test(id) ? glifo(id, cx, cy, lato, 0, true) : glifo(id, cx, cy, lato, 180);
 
   // fascia cerniera sul lato mobile (dove la plastica si curva)
   function zonaCurva(a, b, latoNormale, lunghezza, extra) {
@@ -545,6 +546,40 @@
       }
     },
 
+    molletta: {
+      nome: 'Molletta (striscia ripiegata a U)',
+      parametri: [
+        { k: 'uso', nome: 'Uso', tipo: 'sel', opzioni: [['porta', 'Appendiporta (sull’anta)'], ['tubo', 'Appesa a un tubo o cavo']], def: 'porta' },
+        { k: 'W', nome: 'Larghezza', min: 30, max: 200, passo: 1, def: 70 },
+        { k: 'A', nome: 'Gamba davanti', min: 30, max: 200, passo: 1, def: 110 },
+        { k: 'B', nome: 'Gamba dietro', min: 20, max: 200, passo: 1, def: 70 },
+        { k: 'sp', nome: 'Spessore anta / Ø tubo', min: 4, max: 60, passo: 1, def: 40 },
+        { k: 'g1', nome: 'Pittogramma davanti', tipo: 'sel', opzioni: opzGlifi, def: 'laboratorio' },
+        { k: 'g2', nome: 'Pittogramma dietro', tipo: 'sel', opzioni: opzGlifi, def: 'laboratorio' }
+      ],
+      costruisci(p, t) {
+        const { W, A, B } = p;
+        const r = p.sp / 2;                          // raggio interno = metà spessore dell'anta / raggio del tubo
+        const Lc = lungCurva(r, t, 180);
+        const yf = A;                                // linea di piega in cima alla gamba davanti
+        const yB = yf + Lc;                          // inizio della gamba dietro
+        const lato = Math.min(W - 16, A - 20);
+        const latoB = Math.min(W - 16, B - 14);
+        const porta = p.uso !== 'tubo';
+        return {
+          area: [rett(-W / 2, 0, W / 2, yB + B)],
+          pieghe: [{ nome: 'curva a U', a: [-W / 2 - 1, yf], b: [W / 2 + 1, yf], angolo: -180, raggio: r, fase: 1 }],
+          cerniere: [],
+          rilievi: glifo(p.g1, 0, A / 2, lato).concat(latoB > 12 ? glifoRetro(p.g2, 0, yB + B / 2, latoB) : []),
+          base: [0, A / 2],
+          riferimento: porta
+            ? { tipo: 'lastra', poligono: rett(-W / 2 - 90, yf - 260, W / 2 + 90, yf), fori: [], z0: -2 * r, z1: 0, colore: '#c9a77c' }
+            : { tipo: 'tubo', y: yf, z: t / 2 - (r + t / 2), r: Math.max(1, r - 0.3), x0: -W / 2 - 120, x1: W / 2 + 120 },
+          vistaRuota: [90, 0, 0]
+        };
+      }
+    },
+
     tessera: {
       nome: 'Tessera pittogramma (piatta)',
       parametri: [
@@ -647,6 +682,18 @@
       testo: 'Due curve morbide di verso opposto trasformano una striscia piatta in un’onda: il cartello si stacca dal muro, prende luce e ombra e indica la direzione anche con la sua forma. Le curve si formano su un tubo in acqua calda.',
       aggancio: 'D — viti nella parte piatta a muro',
       trama: { tipo: 'onde', passo: 7, larghezza: 1.2, angolo: 0, bordo: 2.4 }, strati: 7, colore: 'giallo', coloreRilievo: 'nero'
+    },
+    {
+      id: 'appendiporta', forma: 'molletta', par: { uso: 'porta', g1: 'laboratorio', g2: 'laboratorio' }, titolo: 'L’appendiporta', lezione: 'Lezione 5 — Dare volume con le curve',
+      testo: 'Una sola striscia ripiegata a U con una curva larga quanto lo spessore dell’anta: si appoggia sopra la porta senza viti e si legge dal corridoio e dall’aula. Si piega in acqua calda direttamente sulla porta, o su un listello dello stesso spessore.',
+      aggancio: 'B — molletta a U sull’anta',
+      trama: { tipo: 'griglia', passo: 6, larghezza: 1.2, angolo: 0, bordo: 2.4 }, strati: 8, colore: 'bianco', coloreRilievo: 'nero'
+    },
+    {
+      id: 'appeso', forma: 'molletta', par: { uso: 'tubo', W: 90, A: 90, B: 90, sp: 16, g1: 'freccia', g2: 'freccia' }, titolo: 'Il cartello appeso', lezione: 'Lezione 2 — Wayfinding: leggibile da entrambi i lati',
+      testo: 'La stessa striscia, ripiegata attorno a un tubo o a un cavo teso nel corridoio: due facce uguali, una per chi arriva da ciascun lato. La freccia sul retro è specchiata, così indica la stessa direzione reale.',
+      aggancio: 'B — anello attorno al tubo',
+      trama: { tipo: 'pallini', passo: 6, larghezza: 1.2, angolo: 0, bordo: 2.4 }, strati: 8, colore: 'giallo', coloreRilievo: 'nero'
     },
     {
       id: 'targhetta', forma: 'targhetta', titolo: 'La targhetta a bandiera', lezione: 'Lezione 3 — CAD e stampa, la targhetta',

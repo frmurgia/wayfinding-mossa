@@ -117,6 +117,14 @@
       o.castShadow = o.receiveShadow = true;
       return o;
     }
+    if (rif.tipo === 'tubo') {
+      const g = new THREE.CylinderGeometry(rif.r, rif.r, rif.x1 - rif.x0, 48, 1);
+      g.rotateZ(Math.PI / 2);
+      const o = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: '#9aa1a6', roughness: 0.35, metalness: 0.6 }));
+      o.position.set((rif.x0 + rif.x1) / 2, rif.y, rif.z);
+      o.castShadow = o.receiveShadow = true;
+      return o;
+    }
     if (rif.tipo === 'colonna') {
       const h = rif.y1 - rif.y0;
       const g = new THREE.CylinderGeometry(rif.r, rif.r, h, 80, 1);
@@ -198,7 +206,7 @@
     rifObj = creaRiferimento(rif);
     if (rifObj) { rifObj.visible = S.mostraRif; gruppo.add(rifObj); }
     $('btnRif').classList.toggle('nascosto', !rifObj);
-    $('btnRif').textContent = rif && rif.tipo === 'colonna' ? 'Colonna' : (rif && rif.colore ? 'Muro' : 'Lastra');
+    $('btnRif').textContent = !rif ? 'Lastra' : rif.tipo === 'colonna' ? 'Colonna' : rif.tipo === 'tubo' ? 'Tubo' : rif.colore === '#c9a77c' ? 'Porta' : rif.colore ? 'Muro' : 'Lastra';
     const cp = S.sorgente === 'forma' && S.spec ? S.spec.copia : null;
     meshCopia.visible = !!cp;
     if (cp) meshCopia.position.set(cp.x, 0, cp.z);
