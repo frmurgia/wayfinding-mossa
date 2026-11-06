@@ -33,6 +33,12 @@
       <rect x="56" y="70" width="88" height="10" fill="#1d1d1b"/><rect x="70" y="80" width="4" height="7" fill="#1d1d1b"/><rect x="126" y="80" width="4" height="7" fill="#1d1d1b"/>
       <text x="40" y="40" font-size="9" fill="#1d1d1b">pittogramma nero</text><path d="M80 44 V68" stroke="#1d1d1b" stroke-width=".8"/>
       <text x="40" y="132" font-size="9" fill="#1d1d1b">perni nei fori con anello pieno;</text><text x="40" y="143" font-size="9" fill="#1d1d1b">il retro resta piatto sulla lastra</text></svg>`,
+    F: `<svg viewBox="0 0 200 150"><text x="10" y="16" font-size="10" fill="#6f706c">vista dall’alto</text>
+      <rect x="30" y="24" width="140" height="112" fill="#f1d82a"/>
+      ${Array.from({ length: 7 }, (_, i) => Array.from({ length: 5 }, (_, j) => `<rect x="${36 + i * 19.5}" y="${30 + j * 20.5}" width="15" height="15" fill="#f5f4f0"/>`).join('')).join('')}
+      <rect x="55.5" y="50.5" width="15" height="15" fill="#1d1d1b"/><rect x="114" y="91.5" width="15" height="15" fill="#1d1d1b"/>
+      <path d="M63 58 L121 99" stroke="#1d1d1b" stroke-width="6" stroke-linecap="round"/>
+      <text x="30" y="148" font-size="9" fill="#1d1d1b">perni quadrati nelle celle: il segno va dove vuoi</text></svg>`,
     D: `<svg viewBox="0 0 200 150"><text x="10" y="16" font-size="10" fill="#6f706c">sezione</text>
       <rect x="20" y="70" width="160" height="40" fill="#d9d6cf"/>
       <path d="M30 66 H170" stroke="#f2f1ec" stroke-width="6"/><path d="M30 63 H170 M30 69 H170" stroke="#9da3a6" stroke-width=".8"/>

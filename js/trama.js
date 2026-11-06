@@ -346,6 +346,55 @@
     return scelti;
   }
 
+  /* perni quadrati per la griglia: scelti tra i centri delle celle che stanno sotto il segno */
+  function puntiGriglia(linee, origine, passo, wR, lato) {
+    const seg = [];
+    let lung = 0, mnx = Infinity, mny = Infinity, mxx = -Infinity, mxy = -Infinity;
+    for (const l of linee) {
+      const pts = l.chiusa ? l.pts.concat([l.pts[0]]) : l.pts;
+      for (let i = 0; i + 1 < pts.length; i++) {
+        seg.push([pts[i], pts[i + 1]]);
+        lung += Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
+      }
+      for (const q of pts) { mnx = Math.min(mnx, q[0]); mxx = Math.max(mxx, q[0]); mny = Math.min(mny, q[1]); mxy = Math.max(mxy, q[1]); }
+    }
+    const dist = (x, y) => {
+      let d = Infinity;
+      for (const [a, b] of seg) {
+        const dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy || 1;
+        const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / l2));
+        d = Math.min(d, Math.hypot(x - a[0] - t * dx, y - a[1] - t * dy));
+      }
+      return d;
+    };
+    const centri = (soglia) => {
+      const out = [];
+      const i0 = Math.floor((mnx - origine[0]) / passo) - 1, i1 = Math.ceil((mxx - origine[0]) / passo) + 1;
+      const j0 = Math.floor((mny - origine[1]) / passo) - 1, j1 = Math.ceil((mxy - origine[1]) / passo) + 1;
+      for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) {
+        const x = origine[0] + (i + 0.5) * passo, y = origine[1] + (j + 0.5) * passo;
+        if (dist(x, y) <= soglia) out.push([x, y]);
+      }
+      return out;
+    };
+    let cand = centri(wR / 2);
+    if (cand.length < 2) cand = centri(wR / 2 + lato / 2 - 0.6);
+    if (!cand.length) return [];
+    const N = Math.max(2, Math.min(4, Math.round(lung / 30)));
+    const cx = cand.reduce((s, p) => s + p[0], 0) / cand.length, cy = cand.reduce((s, p) => s + p[1], 0) / cand.length;
+    const scelti = [cand.reduce((m, p) => (Math.hypot(p[0] - cx, p[1] - cy) > Math.hypot(m[0] - cx, m[1] - cy) ? p : m))];
+    while (scelti.length < Math.min(N, cand.length)) {
+      let best = null, bd = -1;
+      for (const p of cand) {
+        const d = Math.min(...scelti.map(q => Math.hypot(p[0] - q[0], p[1] - q[1])));
+        if (d > bd) { bd = d; best = p; }
+      }
+      if (bd < passo * 0.99) break;
+      scelti.push(best);
+    }
+    return scelti;
+  }
+
   const cerchioMm = (c, r, n) => Array.from({ length: n || 24 }, (_, i) => [c[0] + r * Math.cos(2 * Math.PI * i / (n || 24)), c[1] + r * Math.sin(2 * Math.PI * i / (n || 24))]);
 
   function genera(spec) {
@@ -356,7 +405,12 @@
     let perni = [];
     const wR = spec.larghezzaRilievo || 3;
     const rPerno = Math.max(0.9, Math.min(1.6, (wR - 1.2) / 2));
-    if (separato) {
+    // con la griglia quadrata la trama stessa è l'aggancio: perni quadrati nelle celle, tessera universale
+    const gioco = spec.giocoPerni === undefined ? 0.2 : spec.giocoPerni;
+    const latoQ = tr.passo - tr.larghezza - gioco;
+    const ang90 = Math.abs((((tr.angolo || 0) % 90) + 90) % 90) < 0.01 || Math.abs((((tr.angolo || 0) % 90) + 90) % 90 - 90) < 0.01;
+    const aGriglia = separato && tr.tipo === 'griglia' && ang90 && latoQ >= 1.6 && spec.innestoGriglia !== false;
+    if (separato && !aGriglia) {
       perni = puntiPerni(spec.rilievi);
       spec = Object.assign({}, spec, {
         fori: (spec.fori || []).concat(perni.map(c => cerchioMm(c, rPerno, 20))),
@@ -369,6 +423,7 @@
     if (!P.length) return { pos: new Float32Array(0), tag: new Uint8Array(0), spessore: t, contorno: [] };
     const bb = bboxPaths(P);
     const origine = tr.origine || [(bb.minX + bb.maxX) / 2, (bb.minY + bb.maxY) / 2];
+    if (aGriglia) perni = puntiGriglia(spec.rilievi, origine, tr.passo, wR, latoQ);
 
     let pezzi = [];
     const rilieviPaths = spec.rilievi && spec.rilievi.length ? tratti(spec.rilievi, spec.larghezzaRilievo || 3, true) : [];
@@ -405,7 +460,12 @@
       estrudi(unione(rilieviPaths), t, t + hR, 1, out);
       if (separato) {
         // perni: dal piano della tessera fin quasi al fondo (il retro resta piatto contro la lastra)
-        const cil = toPaths(perni.map(c => cerchioMm(c, rPerno - 0.05, 20)));
+        const quad = (c, h) => [[c[0] - h, c[1] - h], [c[0] + h, c[1] - h], [c[0] + h, c[1] + h], [c[0] - h, c[1] + h]];
+        const h2 = latoQ / 2;
+        // celle piccole: perno quadrato pieno; celle grandi: cornice quadrata (tocca le 4 pareti, si vede meno)
+        const cornice = aGriglia && latoQ > wR + 1.5;
+        let cil = aGriglia ? toPaths(perni.map(c => quad(c, h2))) : toPaths(perni.map(c => cerchioMm(c, rPerno - 0.05, 20)));
+        if (cornice) cil = sottrai(unione(cil), unione(toPaths(perni.map(c => quad(c, h2 - 1.2)))));
         estrudi(unione(cil), 0.25, t, 1, out);
         // pezzo da stampare: capovolto, linee sul piatto e perni verso l'alto
         const q = out.pos.slice(nTessera * 9);
@@ -422,7 +482,8 @@
       // ciò che va sul piatto della stampante come pezzo principale
       posStampa: separato ? new Float32Array(out.pos.slice(0, nTessera * 9)) : null,
       pittogramma,
-      perni: perni.map(c => ({ x: c[0], y: c[1], d: rPerno * 2 }))
+      perni: perni.map(c => ({ x: c[0], y: c[1], d: aGriglia ? latoQ : rPerno * 2, quadrato: !!aGriglia })),
+      innestoGriglia: !!aGriglia
     };
   }
 

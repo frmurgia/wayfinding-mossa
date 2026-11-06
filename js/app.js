@@ -371,7 +371,12 @@
       $('infoStampa').innerHTML += `<br><b>Metodo 2 (riempimento dello slicer)</b>: trama “Pieno” qui, poi nello slicer 0 strati sopra/sotto, 2 perimetri, riempimento <b>${nomi[tr.tipo] || tr.tipo}</b>` +
         (tr.tipo === 'pallini' ? '' : ` al <b>${dens}%</b> (Cura: distanza linee <b>${passo} mm</b>), larghezza linea riempimento 0,6 mm.`);
     }
-    if (g.pittogramma) $('infoStampa').innerHTML += `<br>Pittogramma a parte: ~${grammiP.toFixed(1)} g, ${g.perni.length} perni Ø${g.perni[0] ? g.perni[0].d.toFixed(1) : '–'} mm a pressione.`;
+    if (g.pittogramma) {
+      const p0 = g.perni[0];
+      $('infoStampa').innerHTML += g.innestoGriglia
+        ? `<br>Pittogramma a parte: ~${grammiP.toFixed(1)} g, ${g.perni.length} perni <b>quadrati ${p0 ? p0.d.toFixed(1).replace('.', ',') : '–'} mm</b> che entrano nelle celle della griglia: <b>la tessera è universale</b>, il segno si sposta di una cella alla volta e si ruota di 90°.`
+        : `<br>Pittogramma a parte: ~${grammiP.toFixed(1)} g, ${g.perni.length} perni Ø${p0 ? p0.d.toFixed(1) : '–'} mm a pressione. Con la <b>griglia quadrata</b> la tessera diventa universale.`;
+    }
     $('expPitto').classList.toggle('nascosto', !g.pittogramma);
     if (S.sorgente === 'forma' && S.spec && S.spec.copia) $('infoStampa').innerHTML += '<br><b>Stampa questo pezzo 2 volte</b>: le due metà sono identiche.';
     const avv = (m ? m.avvisi.slice() : []);

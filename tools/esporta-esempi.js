@@ -75,6 +75,26 @@ for (const lato of [60, 100]) {
     if (lato === 60) fs.writeFileSync(path.join(dirP, `${id}.svg`), '<?xml version="1.0" encoding="UTF-8"?>\n' + Forme.svgGlifo(id, { griglia: true, dimensione: '44mm', margine: 0 }));
   }
 }
+// set "griglia": una tessera universale + pittogrammi con perni quadrati nelle celle
+elenco.push('## Set a griglia (tessera universale)', '',
+  'Cartelle `griglia-60mm/` (passo 6) e `griglia-100mm/` (passo 7,5): una sola `tessera-griglia.stl` va bene per tutti i segni;',
+  'i `*_pittogramma-griglia.stl` hanno perni quadrati che entrano tra le linee e si possono mettere in qualsiasi cella.',
+  'La tessera a griglia va stampata con la trama modellata (metodo 1): la griglia dello slicer non è allineata al centro della tessera.', '');
+for (const [lato, passo] of [[60, 6], [100, 7.5]]) {
+  const d = path.join(dirP, 'griglia-' + lato + 'mm');
+  fs.mkdirSync(d, { recursive: true });
+  const w = +(3.2 * lato / 60).toFixed(1);
+  const tg = { tipo: 'griglia', passo, larghezza: 1.2, angolo: 0, bordo: 2.4 };
+  let tessera = null;
+  for (const c of Forme.CATEGORIE_GLIFI) for (const id of c.ids) {
+    const spec = Forme.FORME.tessera.costruisci({ A: lato, glifo: id }, 1.6);
+    const g = Trama.genera({ area: spec.area, rilievi: spec.rilievi, larghezzaRilievo: w, altezzaRilievo: 1.6, pittogramma: 'separato', trama: tg, spessore: 1.6 });
+    if (!g.innestoGriglia) throw new Error('griglia non attiva per ' + id);
+    fs.writeFileSync(path.join(d, `${id}_pittogramma-griglia.stl`), Buffer.from(STL.scrivi(g.pittogramma, 'PIEGA griglia ' + id)));
+    tessera = tessera || g.posStampa;
+  }
+  fs.writeFileSync(path.join(d, 'tessera-griglia.stl'), Buffer.from(STL.scrivi(tessera, 'PIEGA tessera griglia ' + lato)));
+}
 for (const c of Forme.CATEGORIE_GLIFI) {
   elenco.push(`## ${c.nome}`, '');
   for (const id of c.ids) elenco.push(`- **${Forme.GLIFI[id].nome}** — \`${id}_…\``);

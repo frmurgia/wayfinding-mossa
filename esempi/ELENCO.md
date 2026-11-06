@@ -19,7 +19,7 @@ I pittogrammi sono file a parte (`*_pittogramma.stl`), da stampare in nero e inn
 | bandiera_da-stampare.stl | Il segnale a bandiera | 193 × 170 | 8 | ~30 g |
 | fascia_da-stampare.stl | La fascia per colonna | 240 × 90 | 6 | ~13 g |
 | onda_da-stampare.stl | Il pannello a onda | 230 × 80 | 7 | ~13 g |
-| appendiporta_da-stampare.stl | L’appendiporta | 70 × 245 | 8 | ~16 g |
+| appendiporta_da-stampare.stl | L’appendiporta | 70 × 245 | 8 | ~14 g |
 | appeso_da-stampare.stl | Il cartello appeso | 90 × 208 | 8 | ~19 g |
-| targhetta_da-stampare.stl | La targhetta a bandiera | 190 × 55 | 8 | ~10 g |
+| targhetta_da-stampare.stl | La targhetta a bandiera | 190 × 55 | 8 | ~9 g |
 | tessera_da-stampare.stl | Il pittogramma | 60 × 60 | 6 | ~3 g |
