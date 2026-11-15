@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pittogrammi</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300..700&family=National+Park:wght@300..700&display=swap" rel="stylesheet">
 <style>
   :root { --blu: #3b48e0; --nero: #1d1d1b; --fondo: #f4f4fb; --giallo: #f2d21f; }
@@ -47,6 +48,10 @@
   .tessera { text-align: center; cursor: pointer; color: var(--nero); }
   .tessera svg { width: 84px; height: 84px; display: block; margin: 0 auto 4px; border: 1px solid #c9cdf7; }
   .tessera.att svg { border: 2px solid var(--blu); }
+  .tessera.altro { cursor: default; }
+  .tessera.altro svg { border-style: dashed; }
+  #stato { font-size: 11.5px; margin-top: 6px; }
+  #stato.su { color: #12805c; }
   .tessera span { font-size: 15px; font-weight: 500; display: block; }
   .tessera small { font-size: 10.5px; color: var(--blu); }
   .nota { font-size: 11.5px; margin-top: 6px; }
@@ -59,6 +64,12 @@
 
 <main>
   <div class="col">
+    <div class="box" id="box-classe" hidden>
+      <h2>CLASSE</h2>
+      <input type="text" id="classe" placeholder="codice della classe" aria-label="Codice della classe">
+      <div class="fila"><button id="b-collega">COLLEGATI</button></div>
+      <p id="stato">Non collegati: il lavoro resta su questo computer.</p>
+    </div>
     <div class="box">
       <h2>I NOSTRI SEGNI</h2>
       <div id="lista"></div>
@@ -157,9 +168,10 @@
      Un segno è fatto di linee sulla griglia (0–10, y verso l'alto).
      tratti: [{ pts: [[x, y], ...], r: [raggio di ogni angolo, in caselle], chiusa }]
      Cerchi e mezzi cerchi hanno fissa: true e i loro punti sono già la curva. */
-  const nuovoSegno = nome => ({ nome, tratti: [] });
+  const nuovoId = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx'.replace(/x/g, () => (Math.random() * 16 | 0).toString(16)));
+  const nuovoSegno = nome => ({ id: nuovoId(), nome, tratti: [] });
   const RAGGIO_MAX = 6;
-  let S = { autori: '', segni: [nuovoSegno('SEGNO 1')], att: 0, regole: { linea: 2, lato: 5, lati: 12, font: 'Lexend' } };
+  let S = { autori: '', classe: '', segni: [nuovoSegno('SEGNO 1')], att: 0, regole: { linea: 2, lato: 5, lati: 12, font: 'Lexend' } };
   let aperto = false, centro = null, arco = [], sopra = null, grezzo = null, raggio = 0;
   const storia = [];
 
@@ -357,8 +369,10 @@
     for (const k of ['linea', 'lato', 'lati', 'font']) if (document.activeElement !== $(k)) $(k).value = r[k];
     const alto = $('base').checked ? 2.8 : 1.6;
     $('misure').textContent = `Il segno misura ${n(r.lato * N)} × ${n(r.lato * N)} mm. Stampato in 3D è alto ${alto} mm.`;
-    $('strip').innerHTML = S.segni.map((s, i) => `<div class="tessera ${i === S.att ? 'att' : ''}" data-i="${i}">
-      <svg viewBox="0 0 ${N} ${N}">${interno(s, '#1d1d1b')}</svg><span style="font-family:'${r.font}',sans-serif">${testo(s.nome)}</span>${s.autori ? `<small>${testo(s.autori)}</small>` : ''}</div>`).join('');
+    const tessera = (s, cl, attr) => `<div class="tessera ${cl}" ${attr}>
+      <svg viewBox="0 0 ${N} ${N}">${interno(s, '#1d1d1b')}</svg><span style="font-family:'${r.font}',sans-serif">${testo(s.nome)}</span>${(s.autori || (cl !== 'altro' && S.autori)) ? `<small>${testo(s.autori || S.autori)}</small>` : ''}</div>`;
+    $('strip').innerHTML = S.segni.map((s, i) => tessera(s, i === S.att ? 'att' : '', `data-i="${i}"`)).join('') +
+      altri.map(s => tessera(s, 'altro', '')).join('');
     $('raggio').textContent = raggio;
     $('vista').hidden = !modello;
     if (modello) {
@@ -368,6 +382,8 @@
       $('vista').innerHTML = g + interno(modello, '#1d1d1b');
     }
     try { localStorage.setItem(CHIAVE, JSON.stringify(S)); } catch (e) { /* senza memoria si lavora lo stesso */ }
+    programma();
+    contaStato();
   }
   const testo = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   function tutto() {
@@ -452,14 +468,15 @@
   $('b-nuovo').onclick = () => { salva(); chiudi(); S.segni.push(nuovoSegno('SEGNO ' + (S.segni.length + 1))); S.att = S.segni.length - 1; tutto(); $('nome').select(); };
   $('b-togli').onclick = () => {
     if (!confirm(`Togliere il segno "${seg().nome}"?`)) return;
-    salva(); chiudi(); S.segni.splice(S.att, 1);
+    salva(); chiudi(); daTogliere.add(seg().id); S.segni.splice(S.att, 1);
     if (!S.segni.length) S.segni.push(nuovoSegno('SEGNO 1'));
     S.att = Math.min(S.att, S.segni.length - 1); tutto();
   };
   $('lista').onclick = ev => { const b = ev.target.closest('button'); if (b) scegli(+b.dataset.i); };
-  $('strip').onclick = ev => { const t = ev.target.closest('.tessera'); if (t) scegli(+t.dataset.i); };
+  $('strip').onclick = ev => { const t = ev.target.closest('.tessera[data-i]'); if (t) scegli(+t.dataset.i); };
   $('nome').addEventListener('input', () => { seg().nome = $('nome').value; pannello(); });
   $('autori').addEventListener('input', () => { S.autori = $('autori').value; pannello(); });
+  $('autori').addEventListener('change', () => { if (db) collega(S.classe); });
   document.querySelectorAll('input[name=strumento]').forEach(r => r.onchange = () => { chiudi(); tutto(); });
   for (const k of ['linea', 'lato']) $(k).addEventListener('input', () => { const v = parseFloat($(k).value); if (isFinite(v) && v > 0) { S.regole[k] = v; tutto(); } });
   $('font').addEventListener('change', () => { S.regole.font = $('font').value; tutto(); });
@@ -566,7 +583,7 @@
     if (!f) return;
     try {
       const d = JSON.parse(await f.text());
-      const nuovi = (d.segni || []).filter(s => s && Array.isArray(s.tratti)).map(s => ({ nome: String(s.nome || 'SEGNO'), tratti: s.tratti, autori: String(s.autori || d.autori || '') }));
+      const nuovi = (d.segni || []).filter(s => s && Array.isArray(s.tratti)).map(s => ({ id: nuovoId(), nome: String(s.nome || 'SEGNO'), tratti: s.tratti, autori: String(s.autori || d.autori || '') }));
       if (!nuovi.length) throw new Error('vuoto');
       salva(); chiudi();
       if (S.segni.length === 1 && vuoto(S.segni[0])) S.segni = [];
@@ -575,14 +592,106 @@
     $('file').value = '';
   };
 
+  /* ---------- salvataggio condiviso (Supabase) ----------
+     Ogni segno è una riga della tabella pittogrammi_segni. I segni della coppia si salvano
+     da soli poco dopo ogni modifica; quelli delle altre coppie arrivano in tempo reale. */
+  // indirizzo del progetto e chiave pubblica (anon): è fatta per stare nella pagina, i permessi li decide la tabella
+  const CLOUD = {
+    url: 'https://ktowgkhjttesdawiaqrq.supabase.co',
+    chiave: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0b3dna2hqdHRlc2Rhd2lhcXJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ3NjU5NjIsImV4cCI6MjExMDM0MTk2Mn0.cB2mBBVNvnMUZWSwnRaXmwV8rYSg-267rj9pk1yUyGU'
+  };
+  let db = null, canale = null, altri = [], attesa = null;
+  const inviati = new Map(), daTogliere = new Set();
+  const firma = s => JSON.stringify([s.nome, s.tratti, S.autori]);
+  const mia = r => pulito(r.autori) && pulito(r.autori) === pulito(S.autori);
+  const daRiga = r => ({ id: r.id, nome: r.nome, tratti: Array.isArray(r.tratti) ? r.tratti : [], autori: r.autori });
+  function stato(t, su) { $('stato').textContent = t; $('stato').classList.toggle('su', !!su); }
+  function contaStato() { if (db && canale) stato(`Collegati alla classe ${S.classe}: ${S.segni.length + altri.length} segni.`, true); }
+
+  function programma() {
+    if (!db) return;
+    clearTimeout(attesa);
+    attesa = setTimeout(invia, 700);
+  }
+  async function invia() {
+    if (!db || !pulito(S.autori)) return;
+    // un segno nuovo e ancora vuoto resta qui finché non si disegna qualcosa
+    const righe = S.segni.filter(s => inviati.get(s.id) !== firma(s) && !(vuoto(s) && !inviati.has(s.id))).map(s => ({
+      id: s.id, classe: S.classe, autori: S.autori, nome: s.nome, tratti: s.tratti, aggiornato: new Date().toISOString() }));
+    if (righe.length) {
+      const { error } = await db.from('pittogrammi_segni').upsert(righe);
+      if (error) return stato('Non salvato: ' + error.message);
+      righe.forEach(r => inviati.set(r.id, JSON.stringify([r.nome, r.tratti, r.autori])));
+    }
+    for (const id of [...daTogliere]) {
+      const { error } = await db.from('pittogrammi_segni').delete().eq('id', id);
+      if (!error) daTogliere.delete(id);
+    }
+    contaStato();
+  }
+  function arrivo(r) {
+    if (!r || r.classe !== S.classe) return;
+    if (mia(r)) {
+      const i = S.segni.findIndex(s => s.id === r.id), nuovo = daRiga(r);
+      inviati.set(r.id, JSON.stringify([r.nome, r.tratti, r.autori]));
+      if (i < 0) S.segni.push(nuovo);
+      else if (firma(S.segni[i]) !== firma(nuovo) && !(i === S.att && aperto)) S.segni[i] = Object.assign(S.segni[i], nuovo);
+    } else {
+      const i = altri.findIndex(s => s.id === r.id);
+      if (i < 0) altri.push(daRiga(r)); else altri[i] = daRiga(r);
+    }
+    tutto();
+  }
+  function partenza(id) {
+    altri = altri.filter(s => s.id !== id);
+    const i = S.segni.findIndex(s => s.id === id);
+    if (i >= 0 && !daTogliere.has(id)) {
+      S.segni.splice(i, 1);
+      if (!S.segni.length) S.segni.push(nuovoSegno('SEGNO 1'));
+      S.att = Math.min(S.att, S.segni.length - 1);
+    }
+    tutto();
+  }
+  async function collega(codice) {
+    const c = pulito(codice);
+    if (!c) return stato('Scrivete il codice della classe.');
+    if (servonoAutori()) return;
+    if (!window.supabase) return stato('Senza internet: il lavoro resta su questo computer.');
+    db = db || window.supabase.createClient(CLOUD.url, CLOUD.chiave);
+    if (canale) { await db.removeChannel(canale); canale = null; }
+    S.classe = c; altri = []; inviati.clear();
+    stato('Collegamento…');
+    const { data, error } = await db.from('pittogrammi_segni').select('*').eq('classe', c).order('aggiornato');
+    if (error) { db = null; return stato('Non riesco a collegarmi: ' + error.message); }
+    for (const r of data) {
+      if (!mia(r)) { altri.push(daRiga(r)); continue; }
+      inviati.set(r.id, JSON.stringify([r.nome, r.tratti, r.autori]));
+      const i = S.segni.findIndex(s => s.id === r.id);
+      if (i < 0) S.segni.push(daRiga(r));
+    }
+    // il segno vuoto di partenza non serve se sul server ci sono già i nostri
+    if (S.segni.length > 1 && vuoto(S.segni[0]) && !inviati.has(S.segni[0].id)) S.segni.shift();
+    canale = db.channel('classe-' + c)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pittogrammi_segni', filter: `classe=eq.${c}` },
+        p => p.eventType === 'DELETE' ? partenza(p.old.id) : arrivo(p.new))
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'pittogrammi_segni' }, p => partenza(p.old.id))
+      .subscribe(st => { if (st === 'SUBSCRIBED') contaStato(); else if (st !== 'CLOSED') stato('Collegamento interrotto, riprovo…'); });
+    tutto(); invia();
+  }
+  $('box-classe').hidden = !(CLOUD.url && CLOUD.chiave);
+  $('b-collega').onclick = () => collega($('classe').value);
+
   // per le prove
-  window.segni = { stato: () => S, triangoli: () => triangoli(seg()), svgSegno: () => svgSegno(seg()), svgTutti };
+  window.segni = { stato: () => S, altri: () => altri, triangoli: () => triangoli(seg()), svgSegno: () => svgSegno(seg()), svgTutti };
 
   try {
     const m = JSON.parse(localStorage.getItem(CHIAVE));
-    if (m && Array.isArray(m.segni) && m.segni.length) { S.segni = m.segni; S.att = Math.min(m.att || 0, m.segni.length - 1); Object.assign(S.regole, m.regole || {}); }
+    if (m && Array.isArray(m.segni) && m.segni.length) { S.segni = m.segni; S.att = Math.min(m.att || 0, m.segni.length - 1); Object.assign(S.regole, m.regole || {}); S.autori = m.autori || ''; S.classe = m.classe || ''; }
   } catch (e) { /* si parte da zero */ }
+  S.segni.forEach(s => { if (!s.id) s.id = nuovoId(); });
+  $('classe').value = S.classe;
   tutto();
+  if (S.classe && CLOUD.url && CLOUD.chiave) collega(S.classe);
 })();
 </script>
 </body>
