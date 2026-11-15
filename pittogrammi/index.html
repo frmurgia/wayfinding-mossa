@@ -266,10 +266,11 @@
         { pts: [[5, 3], [7, 3]] }] },
     // Santa Cristina visto dall'alto: recinto a buco di serratura, pozzo tondo, scala a triangolo
     { nome: 'Pozzo sacro', tratti: [
-        { pts: [[3, 0], [3, 8]] }, arcoR([3, 8], [9, 8], 3, [6, 11]), { pts: [[9, 8], [9, 0]] },
-        tondo(6, 8, 1),
-        chiuso([[4, 2], [8, 2], [6, 6]]),
-        { pts: [[5, 4], [7, 4]] }] },
+        { pts: [[2, 0], [2, 4], [1, 6], [1, 7]], r: [0, 1, 1, 0] }, arcoR([1, 7], [11, 7], 5, [6, 12]), { pts: [[11, 7], [11, 6], [10, 4], [10, 0]], r: [0, 1, 1, 0] },
+        tondo(6, 9, 1),
+        chiuso([[3, 1], [9, 1], [7, 5], [5, 5]]),
+        { pts: [[4, 3], [8, 3]] },
+        chiuso([[5, 5], [7, 5], [7, 6], [5, 6]])] },
     // chiesa romanica sarda (San Pietro delle Immagini): tre arcate, archetti, rosone, timpano
     { nome: 'Chiesa romanica', tratti: [
         { pts: [[0, 0], [12, 0]] },
