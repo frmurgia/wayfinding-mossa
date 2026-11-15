@@ -137,16 +137,6 @@
       <div class="campo"><label for="base">Con la tessera sotto</label><input type="checkbox" id="base" checked></div>
       <p class="nota" id="misure"></p>
     </div>
-    <div class="box">
-      <h2>CONSEGNA</h2>
-      <div class="fila">
-        <button id="b-salva" class="pieno">SALVA I NOSTRI SEGNI</button>
-      </div>
-      <p class="nota">Il file va nella cartella Download. Caricatelo nella cartella Drive della classe.</p>
-      <div class="fila">
-        <button id="b-apri">AGGIUNGI SEGNI DA UN FILE</button>
-        <input type="file" id="file" accept=".json,application/json" hidden>
-      </div>
     </div>
   </div>
 
@@ -571,26 +561,6 @@
   $('b-svg').onclick = () => { if (!serveDisegno() && !servonoAutori()) scarica(svgSegno(seg()), conAutori(nomeFile(seg().nome)) + '.svg', 'image/svg+xml'); };
   $('b-svg-tutti').onclick = () => { if (S.segni.every(vuoto)) return alert('Prima disegna qualcosa.'); if (!servonoAutori()) scarica(svgTutti(), conAutori('famiglia') + '.svg', 'image/svg+xml'); };
   $('b-stl').onclick = () => { if (!serveDisegno() && !servonoAutori()) scarica(stl(triangoli(seg())), conAutori(nomeFile(seg().nome)) + '.stl', 'model/stl'); };
-  $('b-salva').onclick = () => {
-    if (servonoAutori()) return;
-    // ogni segno porta con sé chi l'ha fatto, così resta anche quando si mettono insieme i lavori
-    const segniFirmati = S.segni.map(s => Object.assign({}, s, { autori: s.autori || S.autori }));
-    scarica(JSON.stringify({ autori: S.autori, segni: segniFirmati, regole: S.regole }, null, 1), conAutori('segni') + '.json', 'application/json');
-  };
-  $('b-apri').onclick = () => $('file').click();
-  $('file').onchange = async () => {
-    const f = $('file').files[0];
-    if (!f) return;
-    try {
-      const d = JSON.parse(await f.text());
-      const nuovi = (d.segni || []).filter(s => s && Array.isArray(s.tratti)).map(s => ({ id: nuovoId(), nome: String(s.nome || 'SEGNO'), tratti: s.tratti, autori: String(s.autori || d.autori || '') }));
-      if (!nuovi.length) throw new Error('vuoto');
-      salva(); chiudi();
-      if (S.segni.length === 1 && vuoto(S.segni[0])) S.segni = [];
-      S.segni.push(...nuovi); S.att = S.segni.length - nuovi.length; tutto();
-    } catch (e) { alert('Questo file non contiene segni.'); }
-    $('file').value = '';
-  };
 
   /* ---------- salvataggio condiviso (Supabase) ----------
      Ogni segno è una riga della tabella pittogrammi_segni. I segni della coppia si salvano
