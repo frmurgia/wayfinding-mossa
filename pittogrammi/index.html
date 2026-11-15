@@ -278,6 +278,16 @@
         { pts: [[4, 6], [5, 6]] }, { pts: [[7, 6], [8, 6]] },
         { pts: [[6, 7], [6, 3], [7, 3]], r: [0, 1, 0] },
         arcoR([4, 2], [8, 2], 3, [6, 3])] },
+    // chiesa romanica sarda (San Pietro delle Immagini): tre arcate, archetti, rosone, timpano
+    { nome: 'Chiesa romanica', tratti: [
+        { pts: [[0, 0], [12, 0]] },
+        { pts: [[1, 0], [1, 9], [11, 9], [11, 0]] },
+        { pts: [[1, 9], [6, 12], [11, 9]] },
+        { pts: [[1, 5], [11, 5]] },
+        arcata(5, 7, 0, 4, 1), arcata(2, 4, 0, 3, 1), arcata(8, 10, 0, 3, 1),
+        mezzo([1, 8], [3, 8], [2, 9]), mezzo([3, 8], [5, 8], [4, 9]), mezzo([5, 8], [7, 8], [6, 9]), mezzo([7, 8], [9, 8], [8, 9]), mezzo([9, 8], [11, 8], [10, 9]),
+        { pts: [[3, 5], [3, 8]] }, { pts: [[9, 5], [9, 8]] },
+        tondo(6, 6, 1)] },
     { nome: 'Asinello', tratti: [
         { pts: [[2, 3], [2, 7], [8, 7], [8, 3]], r: [1, 2, 0, 1], chiusa: true },
         { pts: [[3, 3], [3, 0]] }, { pts: [[7, 3], [7, 0]] },
