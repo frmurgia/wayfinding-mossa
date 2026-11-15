@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pittogrammi · consegne</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style>
+  :root { --blu: #3b48e0; --nero: #1d1d1b; --fondo: #f4f4fb; --giallo: #f2d21f; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Menlo, Consolas, monospace; color: var(--blu); background: var(--fondo); font-size: 13px; line-height: 1.4; }
+  header { padding: 10px 16px; background: #fff; border-bottom: 2px solid var(--blu); display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; position: sticky; top: 0; z-index: 2; }
+  h1 { font-size: 20px; letter-spacing: .04em; margin-right: auto; }
+  h2 { font-size: 13px; letter-spacing: .08em; }
+  select, button { font: inherit; color: var(--blu); background: #fff; border: 1.5px solid var(--blu); padding: 6px 9px; cursor: pointer; }
+  button:hover { background: var(--fondo); }
+  button:focus-visible, select:focus-visible { outline: 3px solid var(--giallo); outline-offset: 1px; }
+  #stato { font-size: 12px; }
+  #stato.su { color: #12805c; }
+  main { padding: 16px; max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+  .coppia { background: #fff; border: 1.5px solid var(--blu); padding: 12px; }
+  .testa { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; }
+  .testa span { font-size: 12px; }
+  .segni { display: flex; flex-wrap: wrap; gap: 16px; }
+  .segno { width: 150px; color: var(--nero); }
+  .segno svg { display: block; width: 150px; height: 150px; border: 1px solid #c9cdf7; background: #fff; }
+  .segno.nuovo svg { outline: 3px solid var(--giallo); }
+  .segno b { display: block; margin-top: 4px; font-size: 13px; }
+  .segno small { color: var(--blu); font-size: 11px; }
+  .vuoto { padding: 30px 16px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>PITTOGRAMMI · CONSEGNE</h1>
+  <label>Classe <select id="classe"><option value="">—</option></select></label>
+  <button id="b-svg">SCARICA TUTTI (SVG)</button>
+  <span id="stato">Collegamento…</span>
+</header>
+<main id="elenco"><p class="vuoto">Scegli una classe.</p></main>
+
+<script>
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const CLOUD = {
+    url: 'https://ktowgkhjttesdawiaqrq.supabase.co',
+    chiave: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0b3dna2hqdHRlc2Rhd2lhcXJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ3NjU5NjIsImV4cCI6MjExMDM0MTk2Mn0.cB2mBBVNvnMUZWSwnRaXmwV8rYSg-267rj9pk1yUyGU'
+  };
+  const N = 12, LINEA = 2 / 5;           // griglia e spessore come nello strumento (2 mm su caselle da 5 mm)
+  const n = v => +(+v).toFixed(2);
+  const testo = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const ora = d => new Date(d).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+
+  /* ---------- disegno: stesso codice dello strumento ---------- */
+  function svolgi(t) {
+    const p = t.pts, r = t.r, k = p.length;
+    if (t.fissa || !r || k < 3) return p;
+    const out = [];
+    for (let i = 0; i < k; i++) {
+      const dentro = t.chiusa || (i > 0 && i < k - 1), rr = dentro ? (r[i] || 0) : 0;
+      const a = p[(i - 1 + k) % k], b = p[i], c = p[(i + 1) % k];
+      const la = Math.hypot(a[0] - b[0], a[1] - b[1]), lc = Math.hypot(c[0] - b[0], c[1] - b[1]);
+      if (!rr || !la || !lc) { out.push(b); continue; }
+      const u = [(a[0] - b[0]) / la, (a[1] - b[1]) / la], v = [(c[0] - b[0]) / lc, (c[1] - b[1]) / lc];
+      const th = Math.acos(Math.max(-1, Math.min(1, u[0] * v[0] + u[1] * v[1])));
+      if (th < 1e-3 || Math.PI - th < 1e-3) { out.push(b); continue; }
+      const maxA = !t.chiusa && i === 1 ? la : la / 2, maxC = !t.chiusa && i === k - 2 ? lc : lc / 2;
+      const tg = Math.tan(th / 2), d = Math.min(rr / tg, maxA, maxC), re = d * tg;
+      const bis = [u[0] + v[0], u[1] + v[1]], lb = Math.hypot(bis[0], bis[1]), dc = re / Math.sin(th / 2);
+      const cen = [b[0] + bis[0] / lb * dc, b[1] + bis[1] / lb * dc];
+      const a1 = Math.atan2(b[1] + u[1] * d - cen[1], b[0] + u[0] * d - cen[0]);
+      let da = Math.atan2(b[1] + v[1] * d - cen[1], b[0] + v[0] * d - cen[0]) - a1;
+      while (da > Math.PI) da -= 2 * Math.PI;
+      while (da < -Math.PI) da += 2 * Math.PI;
+      for (let j = 0; j <= 12; j++) out.push([cen[0] + re * Math.cos(a1 + da * j / 12), cen[1] + re * Math.sin(a1 + da * j / 12)]);
+    }
+    return out;
+  }
+  const punti = pts => pts.map(p => `${n(p[0])},${n(N - p[1])}`).join(' ');
+  function interno(tratti, colore) {
+    return (tratti || []).filter(t => t && Array.isArray(t.pts) && t.pts.length).map(t => {
+      if (t.pts.length === 1) return `<circle cx="${t.pts[0][0]}" cy="${N - t.pts[0][1]}" r="${n(LINEA / 2)}" fill="${colore}"/>`;
+      return `<${t.chiusa ? 'polygon' : 'polyline'} points="${punti(svolgi(t))}" fill="none" stroke="${colore}" stroke-width="${n(LINEA)}" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }).join('');
+  }
+  const griglia = () => Array.from({ length: N + 1 }, (_, i) =>
+    `<line x1="${i}" y1="0" x2="${i}" y2="${N}" stroke="#e3e6fb" stroke-width="0.03"/><line x1="0" y1="${i}" x2="${N}" y2="${i}" stroke="#e3e6fb" stroke-width="0.03"/>`).join('');
+
+  /* ---------- dati ---------- */
+  const db = window.supabase ? window.supabase.createClient(CLOUD.url, CLOUD.chiave) : null;
+  let righe = [], classe = '', canale = null;
+  const recenti = new Set();
+  function stato(t, su) { $('stato').textContent = t; $('stato').classList.toggle('su', !!su); }
+
+  async function classi() {
+    if (!db) return stato('Senza internet: non riesco a leggere le consegne.');
+    const { data, error } = await db.from('pittogrammi_segni').select('classe');
+    if (error) return stato('Errore: ' + error.message);
+    const conta = {};
+    data.forEach(r => { conta[r.classe] = (conta[r.classe] || 0) + 1; });
+    const sel = $('classe'), prima = sel.value;
+    sel.innerHTML = '<option value="">—</option>' + Object.keys(conta).sort().map(c => `<option value="${testo(c)}">${testo(c)} (${conta[c]})</option>`).join('');
+    if (prima && conta[prima]) sel.value = prima;
+    else if (!prima && Object.keys(conta).length === 1) { sel.value = Object.keys(conta)[0]; apri(sel.value); }
+    if (!classe) stato(Object.keys(conta).length ? 'Scegli una classe.' : 'Ancora nessuna consegna.');
+  }
+
+  async function apri(c) {
+    classe = c; righe = []; recenti.clear();
+    if (canale) { await db.removeChannel(canale); canale = null; }
+    if (!c) { mostra(); return; }
+    stato('Carico…');
+    const { data, error } = await db.from('pittogrammi_segni').select('*').eq('classe', c).order('aggiornato');
+    if (error) return stato('Errore: ' + error.message);
+    righe = data; mostra();
+    canale = db.channel('docente-' + c)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pittogrammi_segni', filter: `classe=eq.${c}` }, arrivo)
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'pittogrammi_segni' }, arrivo)
+      .subscribe(st => { if (st === 'SUBSCRIBED') conteggio(); else if (st !== 'CLOSED') stato('Collegamento interrotto, riprovo…'); });
+  }
+  function arrivo(p) {
+    if (p.eventType === 'DELETE') righe = righe.filter(r => r.id !== p.old.id);
+    else {
+      const r = p.new, i = righe.findIndex(x => x.id === r.id);
+      if (i < 0) righe.push(r); else righe[i] = r;
+      recenti.add(r.id);
+      setTimeout(() => { recenti.delete(r.id); mostra(); }, 4000);
+    }
+    mostra(); classi();
+  }
+  function conteggio() {
+    const coppie = new Set(righe.map(r => r.autori || '(senza nome)')).size;
+    stato(`In diretta: ${coppie} ${coppie === 1 ? 'coppia' : 'coppie'}, ${righe.length} segni.`, true);
+  }
+
+  /* ---------- pagina ---------- */
+  function perCoppia() {
+    const g = new Map();
+    for (const r of righe) {
+      const k = r.autori || '(senza nome)';
+      if (!g.has(k)) g.set(k, []);
+      g.get(k).push(r);
+    }
+    return [...g.entries()].sort((a, b) => a[0].localeCompare(b[0], 'it', { numeric: true }));
+  }
+  function mostra() {
+    if (!classe) { $('elenco').innerHTML = '<p class="vuoto">Scegli una classe.</p>'; return; }
+    const gruppi = perCoppia();
+    if (!gruppi.length) { $('elenco').innerHTML = '<p class="vuoto">Questa classe non ha ancora segni.</p>'; conteggio(); return; }
+    $('elenco').innerHTML = gruppi.map(([coppia, segni]) => {
+      const ultimo = segni.reduce((m, s) => s.aggiornato > m ? s.aggiornato : m, '');
+      return `<section class="coppia">
+        <div class="testa"><h2>${testo(coppia).toUpperCase()}</h2><span>${segni.length} ${segni.length === 1 ? 'segno' : 'segni'} · ultima modifica ${ora(ultimo)}</span></div>
+        <div class="segni">${segni.map(s => `<div class="segno ${recenti.has(s.id) ? 'nuovo' : ''}">
+          <svg viewBox="-0.5 -0.5 ${N + 1} ${N + 1}">${griglia()}${interno(s.tratti, '#1d1d1b')}</svg>
+          <b>${testo(s.nome)}</b><small>${ora(s.aggiornato)}</small></div>`).join('')}</div>
+      </section>`;
+    }).join('');
+    conteggio();
+  }
+
+  // tutti i segni della classe in un file: una riga per coppia, una casella vuota tra un segno e l'altro
+  function svgClasse() {
+    const gruppi = perCoppia(), passo = N + 2, alt = N + 4;
+    const larg = Math.max(...gruppi.map(([, s]) => s.length)) * passo, tot = gruppi.length * alt;
+    let o = '';
+    gruppi.forEach(([coppia, segni], j) => {
+      o += `<text x="0" y="${j * alt + 1}" font-size="0.8" font-family="Helvetica,Arial" fill="#3b48e0">${testo(coppia)}</text>`;
+      segni.forEach((s, i) => {
+        o += `<g id="${testo(s.nome).replace(/\s+/g, '-')}" transform="translate(${i * passo} ${j * alt + 1.5})">${interno(s.tratti, '#000000')}` +
+          `<text x="0" y="${N + 1.1}" font-size="0.7" font-family="Helvetica,Arial">${testo(s.nome)}</text></g>`;
+      });
+    });
+    const mm = 5;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${larg * mm}mm" height="${tot * mm}mm" viewBox="0 0 ${larg} ${tot}">${o}</svg>`;
+  }
+  $('b-svg').onclick = () => {
+    if (!righe.length) return alert('Questa classe non ha ancora segni.');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([svgClasse()], { type: 'image/svg+xml' }));
+    a.download = `pittogrammi-${classe}.svg`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  };
+  $('classe').addEventListener('change', () => apri($('classe').value));
+
+  window.consegne = { righe: () => righe, svgClasse };
+  classi();
+  // una classe nuova compare nell'elenco appena qualcuno salva il primo segno
+  if (db) db.channel('docente-classi')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pittogrammi_segni' }, () => classi())
+    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'pittogrammi_segni' }, () => classi())
+    .subscribe();
+})();
+</script>
+</body>
+</html>

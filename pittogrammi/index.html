@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pittogrammi</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300..700&family=National+Park:wght@300..700&display=swap" rel="stylesheet">
 <style>
   :root { --blu: #3b48e0; --nero: #1d1d1b; --fondo: #f4f4fb; --giallo: #f2d21f; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -123,8 +122,6 @@
       <div class="campo"><label for="lati">Griglia</label>
         <select id="lati"><option value="10">10 × 10</option><option value="12">12 × 12</option></select></div>
       <div class="campo"><label for="lato">Una casella (mm)</label><input type="number" id="lato" min="2" max="30" step="0.5"></div>
-      <div class="campo"><label for="font">Scritta</label>
-        <select id="font"><option>Lexend</option><option>National Park</option></select></div>
       <p class="nota">Cambi una regola e cambiano tutti i segni insieme.</p>
     </div>
     <div class="box">
@@ -161,7 +158,7 @@
   const nuovoId = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx'.replace(/x/g, () => (Math.random() * 16 | 0).toString(16)));
   const nuovoSegno = nome => ({ id: nuovoId(), nome, tratti: [] });
   const RAGGIO_MAX = 6;
-  let S = { autori: '', classe: '', segni: [nuovoSegno('SEGNO 1')], att: 0, regole: { linea: 2, lato: 5, lati: 12, font: 'Lexend' } };
+  let S = { autori: '', classe: '', segni: [nuovoSegno('SEGNO 1')], att: 0, regole: { linea: 2, lato: 5, lati: 12 } };
   let aperto = false, centro = null, arco = [], sopra = null, grezzo = null, raggio = 0;
   const storia = [];
 
@@ -356,11 +353,11 @@
     if (document.activeElement !== $('nome')) $('nome').value = seg().nome;
     if (document.activeElement !== $('autori')) $('autori').value = S.autori || '';
     const r = S.regole;
-    for (const k of ['linea', 'lato', 'lati', 'font']) if (document.activeElement !== $(k)) $(k).value = r[k];
+    for (const k of ['linea', 'lato', 'lati']) if (document.activeElement !== $(k)) $(k).value = r[k];
     const alto = $('base').checked ? 2.8 : 1.6;
     $('misure').textContent = `Il segno misura ${n(r.lato * N)} × ${n(r.lato * N)} mm. Stampato in 3D è alto ${alto} mm.`;
     const tessera = (s, cl, attr) => `<div class="tessera ${cl}" ${attr}>
-      <svg viewBox="0 0 ${N} ${N}">${interno(s, '#1d1d1b')}</svg><span style="font-family:'${r.font}',sans-serif">${testo(s.nome)}</span>${(s.autori || (cl !== 'altro' && S.autori)) ? `<small>${testo(s.autori || S.autori)}</small>` : ''}</div>`;
+      <svg viewBox="0 0 ${N} ${N}">${interno(s, '#1d1d1b')}</svg><span>${testo(s.nome)}</span>${(s.autori || (cl !== 'altro' && S.autori)) ? `<small>${testo(s.autori || S.autori)}</small>` : ''}</div>`;
     $('strip').innerHTML = S.segni.map((s, i) => tessera(s, i === S.att ? 'att' : '', `data-i="${i}"`)).join('') +
       altri.map(s => tessera(s, 'altro', '')).join('');
     $('raggio').textContent = raggio;
@@ -469,7 +466,6 @@
   $('autori').addEventListener('change', () => { if (db) collega(S.classe); });
   document.querySelectorAll('input[name=strumento]').forEach(r => r.onchange = () => { chiudi(); tutto(); });
   for (const k of ['linea', 'lato']) $(k).addEventListener('input', () => { const v = parseFloat($(k).value); if (isFinite(v) && v > 0) { S.regole[k] = v; tutto(); } });
-  $('font').addEventListener('change', () => { S.regole.font = $('font').value; tutto(); });
   $('lati').addEventListener('change', () => { S.regole.lati = +$('lati').value; chiudi(); tutto(); });
   $('base').addEventListener('change', pannello);
   $('b-rmeno').onclick = () => { raggio = Math.max(0, raggio - 1); tutto(); };
