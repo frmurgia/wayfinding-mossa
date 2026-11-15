@@ -248,14 +248,14 @@
   const arcata = (x0, x1, y0, y1, r) => ({ pts: [[x0, y0], [x0, y1], [x1, y1], [x1, y0]], r: [0, r, r, 0] });
   // facciate costruite su griglia 12 × 12 con archi, timpani e cerchi
   const MODELLI = [
+    // nuraghe: torre di pietre a tronco di cono, con la porta architravata
     { nome: 'Nuraghe', tratti: [
-        { pts: [[0, 0], [12, 0]] },
-        chiuso([[3, 0], [9, 0], [8, 9], [4, 9]]),
-        chiuso([[3, 9], [9, 9], [9, 10], [3, 10]]),
-        { pts: [[5, 0], [5, 2], [7, 2], [7, 0]] },
-        { pts: [[6, 5], [6, 7]] },
-        { pts: [[3, 6], [1, 6], [0, 0]] },
-        { pts: [[9, 6], [11, 6], [12, 0]] }] },
+        { pts: [[1, 0], [2, 8], [4, 11], [8, 11], [10, 8], [11, 0]], r: [0, 2, 2, 2, 2, 0] },
+        { pts: [[5, 0], [5, 4], [7, 4], [7, 0]] },
+        { pts: [[4, 5], [8, 5]] },
+        { pts: [[2, 3], [4, 3]] }, { pts: [[8, 3], [10, 3]] },
+        { pts: [[2, 7], [10, 7]] },
+        { pts: [[3, 9], [9, 9]] }] },
     // testa dei giganti di Mont'e Prama: occhi a cerchi concentrici, sopracciglia e naso a T
     { nome: "Gigante di Mont'e Prama", tratti: [
         { pts: [[2, 0], [2, 12], [10, 12], [10, 0]], r: [0, 4, 4, 0] },
@@ -280,14 +280,7 @@
         arcata(5, 7, 0, 4, 1), arcata(2, 4, 0, 3, 1), arcata(8, 10, 0, 3, 1),
         mezzo([1, 8], [3, 8], [2, 9]), mezzo([3, 8], [5, 8], [4, 9]), mezzo([5, 8], [7, 8], [6, 9]), mezzo([7, 8], [9, 8], [8, 9]), mezzo([9, 8], [11, 8], [10, 9]),
         { pts: [[3, 5], [3, 8]] }, { pts: [[9, 5], [9, 8]] },
-        tondo(6, 6, 1)] },
-    // testa di asinello vista di fronte: orecchie a punta, occhi, muso tondo con le narici
-    { nome: 'Asinello', tratti: [
-        { pts: [[4, 5], [3, 8], [3, 10], [9, 10], [9, 8], [8, 5]], r: [0, 1, 2, 2, 1, 0] },
-        { pts: [[3, 1], [3, 5], [9, 5], [9, 1]], r: [2, 1, 1, 2], chiusa: true },
-        { pts: [[3, 8], [1, 12], [5, 10]] }, { pts: [[9, 8], [11, 12], [7, 10]] },
-        { pts: [[5, 8]] }, { pts: [[7, 8]] },
-        { pts: [[5, 3]] }, { pts: [[7, 3]] }] }
+        tondo(6, 6, 1)] }
   ];
   let modello = null;
 
