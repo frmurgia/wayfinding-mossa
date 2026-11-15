@@ -266,18 +266,11 @@
         { pts: [[5, 3], [7, 3]] }] },
     // Santa Cristina visto dall'alto: recinto a buco di serratura, pozzo tondo, scala a triangolo
     { nome: 'Pozzo sacro', tratti: [
-        { pts: [[5, 0], [1, 4], [1, 7]] }, arcoR([1, 7], [11, 7], 5, [6, 12]), { pts: [[11, 7], [11, 4], [7, 0]] },
-        { pts: [[5, 1], [3, 3], [3, 7]] }, arcoR([3, 7], [9, 7], 3, [6, 10]), { pts: [[9, 7], [9, 3], [7, 1]] },
+        { pts: [[4, 0], [1, 4], [1, 7]] }, arcoR([1, 7], [11, 7], 5, [6, 12]), { pts: [[11, 7], [11, 4], [8, 0]] },
+        { pts: [[4, 0], [4, 8]] }, arcoR([4, 8], [8, 8], 2, [6, 10]), { pts: [[8, 8], [8, 0]] },
         tondo(6, 8, 1),
-        chiuso([[3, 3], [9, 3], [6, 6]]),
-        { pts: [[4, 4], [8, 4]] }, { pts: [[5, 5], [7, 5]] }] },
-    { nome: 'Maschera del mamuthone', tratti: [
-        { pts: [[1, 0], [1, 10], [11, 10], [11, 0]], r: [0, 4, 4, 0] },
-        { pts: [[3, 1], [3, 9], [9, 9], [9, 1]], r: [2, 3, 3, 2], chiusa: true },
-        { pts: [[4, 8], [5, 7]] }, { pts: [[8, 8], [7, 7]] },
-        { pts: [[4, 6], [5, 6]] }, { pts: [[7, 6], [8, 6]] },
-        { pts: [[6, 7], [6, 3], [7, 3]], r: [0, 1, 0] },
-        arcoR([4, 2], [8, 2], 3, [6, 3])] },
+        chiuso([[4, 2], [8, 2], [6, 6]]),
+        { pts: [[5, 4], [7, 4]] }] },
     // chiesa romanica sarda (San Pietro delle Immagini): tre arcate, archetti, rosone, timpano
     { nome: 'Chiesa romanica', tratti: [
         { pts: [[0, 0], [12, 0]] },
