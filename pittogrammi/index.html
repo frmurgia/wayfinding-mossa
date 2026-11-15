@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pittogrammi</title>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300..700&family=National+Park:wght@300..700&display=swap" rel="stylesheet">
+<style>
+  :root { --blu: #3b48e0; --nero: #1d1d1b; --fondo: #f4f4fb; --giallo: #f2d21f; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Menlo, Consolas, monospace; color: var(--blu); background: var(--fondo); font-size: 13px; line-height: 1.4; }
+  header { padding: 10px 16px; background: #fff; border-bottom: 2px solid var(--blu); display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  h1 { font-size: 20px; letter-spacing: .04em; }
+  h2 { font-size: 12px; letter-spacing: .08em; margin-bottom: 8px; }
+  main { display: grid; grid-template-columns: 190px minmax(0, 1fr) 250px; gap: 14px; padding: 14px 16px; max-width: 1280px; margin: 0 auto; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  .box { background: #fff; border: 1.5px solid var(--blu); padding: 10px; }
+  .col { display: flex; flex-direction: column; gap: 14px; }
+  button, .scelta label { font: inherit; color: var(--blu); background: #fff; border: 1.5px solid var(--blu); padding: 6px 9px; cursor: pointer; }
+  button:hover, .scelta label:hover { background: var(--fondo); }
+  button.pieno { background: var(--blu); color: #fff; font-weight: 700; }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--giallo); outline-offset: 1px; }
+  .scelta { display: flex; flex-wrap: wrap; }
+  .scelta input { position: absolute; opacity: 0; pointer-events: none; }
+  .scelta label { margin: 0 -1.5px -1.5px 0; display: flex; align-items: center; gap: 4px; }
+  .scelta input:checked + label { background: var(--blu); color: #fff; }
+  .scelta input:focus-visible + label { outline: 3px solid var(--giallo); }
+  .scelta svg { width: 20px; height: 20px; display: block; }
+  .scelta input:checked + label svg * { fill: #fff; }
+  .barra { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; padding: 8px; border-bottom: 1.5px solid var(--blu); }
+  .barra .spazio { flex: 1; }
+  .spunta { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+  #vista { display: block; width: 100%; height: auto; margin-top: 8px; border: 1px solid #c9cdf7; }
+  input[type=checkbox] { accent-color: var(--blu); width: 15px; height: 15px; }
+  .passi { display: flex; align-items: center; gap: 0; } .passi span { margin-right: 8px; } .passi output { min-width: 3ch; text-align: center; font-weight: 700; border-top: 1.5px solid var(--blu); border-bottom: 1.5px solid var(--blu); padding: 6px 4px; }
+  #griglia { display: block; width: 100%; height: auto; max-height: calc(100vh - 330px); min-height: 280px; touch-action: none; cursor: crosshair; user-select: none; background: #fff; }
+  .tela { background: #fff; border: 1.5px solid var(--blu); }
+  #lista button { display: block; width: 100%; text-align: left; margin-bottom: -1.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #lista button.att { background: var(--blu); color: #fff; }
+  .fila { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .campo { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 6px; }
+  input[type=number], input[type=text], select { font: inherit; color: var(--blu); border: 1.5px solid var(--blu); padding: 4px 6px; background: #fff; width: 9ch; }
+  input[type=text] { width: 100%; }
+  select { width: auto; }
+  #famiglia { grid-column: 1 / -1; }
+  #strip { display: flex; flex-wrap: wrap; gap: 14px 18px; align-items: flex-end; }
+  .tessera { text-align: center; cursor: pointer; color: var(--nero); }
+  .tessera svg { width: 84px; height: 84px; display: block; margin: 0 auto 4px; border: 1px solid #c9cdf7; }
+  .tessera.att svg { border: 2px solid var(--blu); }
+  .tessera span { font-size: 15px; font-weight: 500; display: block; }
+  .tessera small { font-size: 10.5px; color: var(--blu); }
+  .nota { font-size: 11.5px; margin-top: 6px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>PITTOGRAMMI</h1>
+</header>
+
+<main>
+  <div class="col">
+    <div class="box">
+      <h2>I NOSTRI SEGNI</h2>
+      <div id="lista"></div>
+      <div class="fila">
+        <button id="b-nuovo">+ NUOVO SEGNO</button>
+        <button id="b-togli">TOGLI QUESTO</button>
+      </div>
+    </div>
+    <div class="box">
+      <h2>CHI SIETE</h2>
+      <input type="text" id="autori" placeholder="es. Rossi Bianchi" aria-label="Cognomi della coppia">
+      <p class="nota">Va nel nome di ogni file che salvate.</p>
+    </div>
+    <div class="box">
+      <h2>NOME DEL LUOGO</h2>
+      <input type="text" id="nome" aria-label="Nome del luogo">
+    </div>
+  </div>
+
+  <section class="tela">
+    <div class="barra">
+      <div class="scelta" role="radiogroup" aria-label="Strumento">
+        <input type="radio" name="strumento" id="s-linea" value="linea" checked><label for="s-linea">LINEA</label>
+        <input type="radio" name="strumento" id="s-cerchio" value="cerchio"><label for="s-cerchio">CERCHIO</label>
+        <input type="radio" name="strumento" id="s-arco" value="arco"><label for="s-arco">ARCO</label>
+        <input type="radio" name="strumento" id="s-raggio" value="raggio"><label for="s-raggio">CAMBIA UN ANGOLO</label>
+        <input type="radio" name="strumento" id="s-gomma" value="gomma"><label for="s-gomma">GOMMA</label>
+      </div>
+      <div class="passi" role="group" aria-label="Raggio degli angoli">
+        <span>RAGGIO</span><button id="b-rmeno" aria-label="Raggio più piccolo">−</button><output id="raggio">0</output><button id="b-rpiu" aria-label="Raggio più grande">+</button>
+      </div>
+      <label class="spunta"><input type="checkbox" id="archi"> VEDI GLI ARCHI</label>
+      <label class="spunta"><input type="checkbox" id="diagonali" checked> GRIGLIA DI COSTRUZIONE</label>
+      <span class="spazio"></span>
+      <button id="b-fine" title="Invio">FINE LINEA</button>
+      <button id="b-annulla" title="Ctrl+Z">ANNULLA</button>
+      <button id="b-cancella">CANCELLA IL DISEGNO</button>
+    </div>
+    <svg id="griglia" viewBox="-0.8 -0.5 13.3 13.3" role="img" aria-label="Griglia su cui disegnare"></svg>
+  </section>
+
+  <div class="col">
+    <div class="box">
+      <h2>ESEMPIO DA COPIARE</h2>
+      <select id="modello" aria-label="Esempio da copiare" style="width:100%"></select>
+      <svg id="vista" viewBox="-0.7 -0.3 13 13" role="img" aria-label="L'esempio sulla griglia" hidden></svg>
+    </div>
+    <div class="box">
+      <h2>REGOLE DI TUTTA LA FAMIGLIA</h2>
+      <div class="campo"><label for="linea">Linea larga (mm)</label><input type="number" id="linea" min="1" max="12" step="0.5"></div>
+      <div class="campo"><label for="lati">Griglia</label>
+        <select id="lati"><option value="10">10 × 10</option><option value="12">12 × 12</option></select></div>
+      <div class="campo"><label for="lato">Una casella (mm)</label><input type="number" id="lato" min="2" max="30" step="0.5"></div>
+      <div class="campo"><label for="font">Scritta</label>
+        <select id="font"><option>Lexend</option><option>National Park</option></select></div>
+      <p class="nota">Cambi una regola e cambiano tutti i segni insieme.</p>
+    </div>
+    <div class="box">
+      <h2>SCARICA</h2>
+      <div class="fila">
+        <button id="b-svg">QUESTO SEGNO (SVG)</button>
+        <button id="b-svg-tutti">TUTTI I SEGNI (SVG)</button>
+        <button id="b-stl">QUESTO SEGNO PER LA STAMPA 3D (STL)</button>
+      </div>
+      <div class="campo"><label for="base">Con la tessera sotto</label><input type="checkbox" id="base" checked></div>
+      <p class="nota" id="misure"></p>
+    </div>
+    <div class="box">
+      <h2>CONSEGNA</h2>
+      <div class="fila">
+        <button id="b-salva" class="pieno">SALVA I NOSTRI SEGNI</button>
+      </div>
+      <p class="nota">Il file va nella cartella Download. Caricatelo nella cartella Drive della classe.</p>
+      <div class="fila">
+        <button id="b-apri">AGGIUNGI SEGNI DA UN FILE</button>
+        <input type="file" id="file" accept=".json,application/json" hidden>
+      </div>
+    </div>
+  </div>
+
+  <div class="box" id="famiglia">
+    <h2>LA FAMIGLIA</h2>
+    <div id="strip"></div>
+  </div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const svg = $('griglia');
+  const CHIAVE = 'segni-della-scuola';
+  let N = 12;                        // caselle per lato: lo decide la regola della famiglia
+
+  /* ---------- stato ----------
+     Un segno è fatto di linee sulla griglia (0–10, y verso l'alto).
+     tratti: [{ pts: [[x, y], ...], r: [raggio di ogni angolo, in caselle], chiusa }]
+     Cerchi e mezzi cerchi hanno fissa: true e i loro punti sono già la curva. */
+  const nuovoSegno = nome => ({ nome, tratti: [] });
+  const RAGGIO_MAX = 6;
+  let S = { autori: '', segni: [nuovoSegno('SEGNO 1')], att: 0, regole: { linea: 2, lato: 5, lati: 12, font: 'Lexend' } };
+  let aperto = false, centro = null, arco = [], sopra = null, grezzo = null, raggio = 0;
+  const storia = [];
+
+  const seg = () => S.segni[S.att];
+  const n = v => +(+v).toFixed(2);
+  const uguali = (a, b) => Math.abs(a[0] - b[0]) < 1e-6 && Math.abs(a[1] - b[1]) < 1e-6;
+  const strumento = () => document.querySelector('input[name=strumento]:checked').value;
+  const salva = () => { storia.push(JSON.stringify({ segni: S.segni, att: S.att })); if (storia.length > 200) storia.shift(); };
+
+  /* ---------- forme ---------- */
+  const arcoPts = (cx, cy, r, a0, a1, k) => Array.from({ length: k + 1 }, (_, i) => {
+    const g = (a0 + (a1 - a0) * i / k) * Math.PI / 180;
+    return [cx + r * Math.cos(g), cy + r * Math.sin(g)];
+  });
+  const cerchio = (cx, cy, r, k) => arcoPts(cx, cy, r, 0, 360, k).slice(0, k);
+  function mezzoCerchio(a, b, p) {
+    const lato = (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]);
+    if (Math.abs(lato) < 1e-9) return null;
+    const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], r = Math.hypot(b[0] - a[0], b[1] - a[1]) / 2;
+    const a0 = Math.atan2(a[1] - m[1], a[0] - m[0]) * 180 / Math.PI;
+    const pts = arcoPts(m[0], m[1], r, a0, a0 + (lato > 0 ? -180 : 180), 20);
+    pts[0] = a.slice(); pts[20] = b.slice();
+    return pts;
+  }
+  // arco da a a b con raggio R, gonfio dal lato del punto p
+  function arcoRaggio(a, b, R, p) {
+    const c = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const lato = (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]);
+    if (!c || Math.abs(lato) < 1e-9 || R < c / 2 - 1e-9) return null;
+    if (R - c / 2 < 1e-9) return mezzoCerchio(a, b, p);
+    const verso = lato > 0 ? 1 : -1, nx = -(b[1] - a[1]) / c * verso, ny = (b[0] - a[0]) / c * verso;
+    const dc = Math.sqrt(R * R - c * c / 4), cen = [(a[0] + b[0]) / 2 - nx * dc, (a[1] + b[1]) / 2 - ny * dc];
+    const a0 = Math.atan2(a[1] - cen[1], a[0] - cen[0]);
+    let da = Math.atan2(b[1] - cen[1], b[0] - cen[0]) - a0;
+    while (da > Math.PI) da -= 2 * Math.PI;
+    while (da < -Math.PI) da += 2 * Math.PI;
+    const pts = Array.from({ length: 25 }, (_, i) => [cen[0] + R * Math.cos(a0 + da * i / 24), cen[1] + R * Math.sin(a0 + da * i / 24)]);
+    pts[0] = a.slice(); pts[24] = b.slice();
+    return pts;
+  }
+  // lo strumento Arco: il raggio si sceglie con il puntatore e va a passi interi
+  // (il più piccolo possibile è il mezzo cerchio). Restituisce i punti e il raggio.
+  function arcoTra(a, b, p) {
+    const c = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const lato = (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]);
+    if (!c || Math.abs(lato) < 1e-9) return null;
+    const h = Math.min(Math.abs(lato) / c, c / 2);              // quanto il puntatore è lontano dalla corda
+    const voluto = (c * c / 4 + h * h) / (2 * h);
+    let R = c / 2;
+    for (let k = Math.floor(c / 2) + 1; k <= 40; k++) if (Math.abs(k - voluto) < Math.abs(R - voluto)) R = k;
+    return { pts: arcoRaggio(a, b, R, p), r: R };
+  }
+  // la linea con gli angoli arrotondati: da qui passano schermo, SVG, gomma e stampa 3D
+  function svolgi(t) {
+    const p = t.pts, r = t.r, k = p.length;
+    if (t.fissa || !r || k < 3) return p;
+    const out = [];
+    for (let i = 0; i < k; i++) {
+      const dentro = t.chiusa || (i > 0 && i < k - 1), rr = dentro ? (r[i] || 0) : 0;
+      const a = p[(i - 1 + k) % k], b = p[i], c = p[(i + 1) % k];
+      const la = Math.hypot(a[0] - b[0], a[1] - b[1]), lc = Math.hypot(c[0] - b[0], c[1] - b[1]);
+      if (!rr || !la || !lc) { out.push(b); continue; }
+      const u = [(a[0] - b[0]) / la, (a[1] - b[1]) / la], v = [(c[0] - b[0]) / lc, (c[1] - b[1]) / lc];
+      const th = Math.acos(Math.max(-1, Math.min(1, u[0] * v[0] + u[1] * v[1])));
+      if (th < 1e-3 || Math.PI - th < 1e-3) { out.push(b); continue; }
+      // un lato in comune con un altro angolo si divide a metà; l'ultimo lato di una linea aperta si usa tutto
+      const maxA = !t.chiusa && i === 1 ? la : la / 2, maxC = !t.chiusa && i === k - 2 ? lc : lc / 2;
+      const tg = Math.tan(th / 2), d = Math.min(rr / tg, maxA, maxC), re = d * tg;
+      const bis = [u[0] + v[0], u[1] + v[1]], lb = Math.hypot(bis[0], bis[1]), dc = re / Math.sin(th / 2);
+      const cen = [b[0] + bis[0] / lb * dc, b[1] + bis[1] / lb * dc];
+      const a1 = Math.atan2(b[1] + u[1] * d - cen[1], b[0] + u[0] * d - cen[0]);
+      let da = Math.atan2(b[1] + v[1] * d - cen[1], b[0] + v[0] * d - cen[0]) - a1;
+      while (da > Math.PI) da -= 2 * Math.PI;
+      while (da < -Math.PI) da += 2 * Math.PI;
+      for (let j = 0; j <= 12; j++) out.push([cen[0] + re * Math.cos(a1 + da * j / 12), cen[1] + re * Math.sin(a1 + da * j / 12)]);
+    }
+    return out;
+  }
+  const punti = pts => pts.map(p => `${n(p[0])},${n(N - p[1])}`).join(' ');
+
+  // il segno come elementi SVG, in unità di griglia
+  function interno(s, colore, ultimoAperto) {
+    const w = S.regole.linea / S.regole.lato;
+    return s.tratti.map((t, i) => {
+      const col = ultimoAperto && i === s.tratti.length - 1 ? '#3b48e0' : colore;
+      if (t.pts.length === 1) return `<circle cx="${t.pts[0][0]}" cy="${N - t.pts[0][1]}" r="${n(w / 2)}" fill="${col}"/>`;
+      return `<${t.chiusa ? 'polygon' : 'polyline'} points="${punti(svolgi(t))}" fill="none" stroke="${col}" stroke-width="${n(w)}" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }).join('');
+  }
+
+  /* ---------- esempi da copiare ----------
+     Stesso formato dei segni: linee sugli incroci, r = raggio di ogni angolo. */
+  const mezzo = (a, b, p) => ({ pts: mezzoCerchio(a, b, p), fissa: true });
+  const tondo = (cx, cy, r) => ({ pts: cerchio(cx, cy, r, 36), chiusa: true, fissa: true });
+  const arcoR = (a, b, R, p) => ({ pts: arcoRaggio(a, b, R, p), fissa: true });
+  const chiuso = pts => ({ pts, chiusa: true });
+  const arcata = (x0, x1, y0, y1, r) => ({ pts: [[x0, y0], [x0, y1], [x1, y1], [x1, y0]], r: [0, r, r, 0] });
+  // facciate costruite su griglia 12 × 12 con archi, timpani e cerchi
+  const MODELLI = [
+    { nome: 'Portico con torre', tratti: [
+        chiuso([[0, 0], [12, 0], [12, 7], [0, 7]]),
+        arcata(1, 3, 0, 4, 1), arcata(4, 8, 0, 6, 2), arcata(9, 11, 0, 4, 1),
+        { pts: [[0, 7], [4, 9], [8, 9], [12, 7]] },
+        { pts: [[4, 9], [4, 10], [6, 12], [8, 10], [8, 9]] }] },
+    { nome: 'Chiesa con rosone', tratti: [
+        chiuso([[2, 0], [10, 0], [10, 5], [2, 5]]),
+        arcata(5, 7, 0, 3, 1),
+        { pts: [[4, 5], [4, 9], [8, 9], [8, 5]] },
+        arcoR([2, 5], [4, 7], 2, [4, 5]), arcoR([10, 5], [8, 7], 2, [8, 5]),
+        tondo(6, 7, 1),
+        { pts: [[4, 9], [6, 11], [8, 9]] },
+        { pts: [[6, 11], [6, 12]] }] },
+    { nome: 'Torre con navata', tratti: [
+        chiuso([[1, 0], [5, 0], [5, 8], [1, 8]]),
+        tondo(3, 6, 1),
+        arcata(2, 4, 0, 3, 1),
+        chiuso([[0, 8], [6, 8], [6, 9], [0, 9]]),
+        { pts: [[1, 9], [3, 11], [5, 9]] },
+        { pts: [[3, 11], [3, 12]] },
+        { pts: [[5, 4], [11, 4], [11, 0], [5, 0]] },
+        { pts: [[5, 4], [8, 7], [11, 4]] },
+        arcata(7, 9, 0, 2, 1)] },
+    { nome: 'Tempio con cupola', tratti: [
+        chiuso([[1, 0], [11, 0], [11, 1], [1, 1]]),
+        chiuso([[3, 1], [9, 1], [9, 5], [3, 5]]),
+        arcata(5, 7, 1, 4, 1),
+        { pts: [[2, 5], [10, 5]] },
+        arcoR([3, 5], [9, 5], 3, [6, 8]),
+        chiuso([[5, 8], [7, 8], [7, 10], [5, 10]]),
+        { pts: [[6, 10], [6, 12]] }] }
+  ];
+  let modello = null;
+
+  /* ---------- disegno ---------- */
+  function disegna() {
+    let o = '';
+    for (let i = 0; i <= N; i++) {
+      const w = i === 0 || i === N ? 0.05 : 0.02;
+      o += `<line x1="${i}" y1="0" x2="${i}" y2="${N}" stroke="#3b48e0" stroke-width="${w}"/><line x1="0" y1="${i}" x2="${N}" y2="${i}" stroke="#3b48e0" stroke-width="${w}"/>`;
+      o += `<text x="${i}" y="${N + 0.5}" font-size="0.32" text-anchor="middle" fill="#3b48e0">${i}</text><text x="-0.25" y="${N - i + 0.11}" font-size="0.32" text-anchor="end" fill="#3b48e0">${i}</text>`;
+    }
+    const st = strumento();
+    if ($('diagonali').checked) {
+      // griglia di costruzione: cerchi iscritti nei blocchi (per 12: blocchi da 6 e da 4) …
+      for (const d of [2, 3, 5]) {
+        if (N % d) continue;
+        const r = N / (2 * d);
+        for (let i = 0; i < d; i++) for (let j = 0; j < d; j++)
+          o += `<circle cx="${r * (2 * i + 1)}" cy="${N - r * (2 * j + 1)}" r="${r}" fill="none" stroke="#b4bcf5" stroke-width="0.03"/>`;
+      }
+      // … e le linee a 45° che passano per un incrocio sì e uno no
+      for (let k = -N + 2; k < N; k += 2) {
+        const x0 = Math.max(0, k), x1 = Math.min(N, N + k);
+        o += `<line x1="${x0}" y1="${N - (x0 - k)}" x2="${x1}" y2="${N - (x1 - k)}" stroke="#8f9bf2" stroke-width="0.03"/>`;
+      }
+      for (let k = 2; k < 2 * N; k += 2) {
+        const x0 = Math.max(0, k - N), x1 = Math.min(N, k);
+        o += `<line x1="${x0}" y1="${N - (k - x0)}" x2="${x1}" y2="${N - (k - x1)}" stroke="#8f9bf2" stroke-width="0.03"/>`;
+      }
+    }
+    if ($('archi').checked) {
+      // i cerchi del raggio scelto, uno accanto all'altro: mostrano dove passa una curva di quel raggio
+      const r = Math.max(1, raggio);
+      for (let x = r; x <= N - r; x += 2 * r) for (let y = r; y <= N - r; y += 2 * r)
+        o += `<circle cx="${x}" cy="${N - y}" r="${r}" fill="none" stroke="#8f9bf2" stroke-width="0.035"/>`;
+    }
+    o += interno(seg(), '#1d1d1b', aperto);
+    if (aperto) {
+      const t = seg().tratti[seg().tratti.length - 1], u = t.pts[t.pts.length - 1];
+      if (sopra && st === 'linea') o += `<line x1="${u[0]}" y1="${N - u[1]}" x2="${sopra[0]}" y2="${N - sopra[1]}" stroke="#3b48e0" stroke-width="0.06" stroke-dasharray="0.15 0.15"/>`;
+      o += t.pts.map(p => `<circle cx="${p[0]}" cy="${N - p[1]}" r="0.15" fill="#fff" stroke="#3b48e0" stroke-width="0.06"/>`).join('');
+    }
+    if (centro) {
+      o += `<circle cx="${centro[0]}" cy="${N - centro[1]}" r="0.14" fill="#3b48e0"/>`;
+      if (sopra) o += `<circle cx="${centro[0]}" cy="${N - centro[1]}" r="${Math.hypot(sopra[0] - centro[0], sopra[1] - centro[1])}" fill="none" stroke="#3b48e0" stroke-width="0.06" stroke-dasharray="0.15 0.15"/>`;
+    }
+    o += arco.map(q => `<circle cx="${q[0]}" cy="${N - q[1]}" r="0.14" fill="#3b48e0"/>`).join('');
+    if (arco.length && sopra) {
+      const prova = arco.length === 2 ? arcoTra(arco[0], arco[1], grezzo || sopra) : null;
+      o += `<polyline points="${punti(prova ? prova.pts : [arco[0], arco[1] || sopra])}" fill="none" stroke="#3b48e0" stroke-width="0.06" stroke-dasharray="0.15 0.15"/>`;
+      if (prova) {
+        const q = grezzo || sopra;
+        o += `<text x="${n(q[0] + 0.35)}" y="${n(N - q[1] - 0.3)}" font-size="0.42" font-weight="700" fill="#3b48e0" stroke="#fff" stroke-width="0.12" paint-order="stroke">raggio ${n(prova.r)}</text>`;
+      }
+    }
+    if (sopra && st !== 'gomma') o += `<circle cx="${sopra[0]}" cy="${N - sopra[1]}" r="0.2" fill="none" stroke="#f2a900" stroke-width="0.07"/>`;
+    svg.innerHTML = o;
+  }
+
+  function pannello() {
+    $('lista').innerHTML = S.segni.map((s, i) => `<button data-i="${i}" class="${i === S.att ? 'att' : ''}">${testo(s.nome) || '(senza nome)'}</button>`).join('');
+    if (document.activeElement !== $('nome')) $('nome').value = seg().nome;
+    if (document.activeElement !== $('autori')) $('autori').value = S.autori || '';
+    const r = S.regole;
+    for (const k of ['linea', 'lato', 'lati', 'font']) if (document.activeElement !== $(k)) $(k).value = r[k];
+    const alto = $('base').checked ? 2.8 : 1.6;
+    $('misure').textContent = `Il segno misura ${n(r.lato * N)} × ${n(r.lato * N)} mm. Stampato in 3D è alto ${alto} mm.`;
+    $('strip').innerHTML = S.segni.map((s, i) => `<div class="tessera ${i === S.att ? 'att' : ''}" data-i="${i}">
+      <svg viewBox="0 0 ${N} ${N}">${interno(s, '#1d1d1b')}</svg><span style="font-family:'${r.font}',sans-serif">${testo(s.nome)}</span>${s.autori ? `<small>${testo(s.autori)}</small>` : ''}</div>`).join('');
+    $('raggio').textContent = raggio;
+    $('vista').hidden = !modello;
+    if (modello) {
+      let g = '';
+      for (let i = 0; i <= N; i++) g += `<line x1="${i}" y1="0" x2="${i}" y2="${N}" stroke="#c9cdf7" stroke-width="0.03"/><line x1="0" y1="${i}" x2="${N}" y2="${i}" stroke="#c9cdf7" stroke-width="0.03"/>` +
+        `<text x="${i}" y="${N + 0.55}" font-size="0.4" text-anchor="middle" fill="#3b48e0">${i}</text><text x="-0.2" y="${N - i + 0.14}" font-size="0.4" text-anchor="end" fill="#3b48e0">${i}</text>`;
+      $('vista').innerHTML = g + interno(modello, '#1d1d1b');
+    }
+    try { localStorage.setItem(CHIAVE, JSON.stringify(S)); } catch (e) { /* senza memoria si lavora lo stesso */ }
+  }
+  const testo = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function tutto() {
+    N = S.regole.lati === 10 ? 10 : 12;
+    svg.setAttribute('viewBox', `-0.8 -0.5 ${N + 1.3} ${N + 1.3}`);
+    $('vista').setAttribute('viewBox', `-0.7 -0.3 ${N + 1} ${N + 1}`);
+    disegna(); pannello();
+  }
+
+  /* ---------- azioni ---------- */
+  function leggi(ev) {
+    const pt = svg.createSVGPoint();
+    pt.x = ev.clientX; pt.y = ev.clientY;
+    const q = pt.matrixTransform(svg.getScreenCTM().inverse());
+    grezzo = [q.x, N - q.y];
+    const ag = v => Math.min(N, Math.max(0, Math.round(v)));
+    return [ag(grezzo[0]), ag(grezzo[1])];
+  }
+  // chiude la linea in corso; lascia il campo del nome, così mostra sempre il segno scelto
+  function chiudi() { aperto = false; centro = null; arco = []; $('nome').blur(); }
+  function distanzaDalTratto(p, t) {
+    const sv = svolgi(t), pts = t.chiusa ? sv.concat([sv[0]]) : sv;
+    let d = pts.length === 1 ? Math.hypot(p[0] - pts[0][0], p[1] - pts[0][1]) : Infinity;
+    for (let i = 0; i + 1 < pts.length; i++) {
+      const a = pts[i], b = pts[i + 1], l = (b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2;
+      const k = l ? Math.max(0, Math.min(1, ((p[0] - a[0]) * (b[0] - a[0]) + (p[1] - a[1]) * (b[1] - a[1])) / l)) : 0;
+      d = Math.min(d, Math.hypot(p[0] - a[0] - k * (b[0] - a[0]), p[1] - a[1] - k * (b[1] - a[1])));
+    }
+    return d;
+  }
+  function clic(p) {
+    const s = seg(), st = strumento();
+    if (st === 'raggio') {
+      // dà il raggio scelto all'angolo su cui si clicca
+      for (const t of s.tratti) {
+        if (t.fissa) continue;
+        const i = t.pts.findIndex(q => uguali(q, p));
+        if (i >= 0) { salva(); t.r = t.pts.map((_, j) => (t.r && t.r[j]) || 0); t.r[i] = raggio; break; }
+      }
+    } else if (st === 'gomma') {
+      const soglia = Math.max(0.35, S.regole.linea / S.regole.lato / 2);
+      let vicino = -1, dmin = soglia;
+      s.tratti.forEach((t, i) => { const d = distanzaDalTratto(grezzo, t); if (d <= dmin) { dmin = d; vicino = i; } });
+      if (vicino >= 0) { salva(); s.tratti.splice(vicino, 1); }
+    } else if (st === 'arco') {
+      if (arco.length === 0) arco = [p];
+      else if (arco.length === 1) { if (!uguali(p, arco[0])) arco.push(p); }
+      else { const fatto = arcoTra(arco[0], arco[1], grezzo || p); if (fatto) { salva(); s.tratti.push({ pts: fatto.pts, fissa: true }); arco = []; } }
+    } else if (st === 'cerchio') {
+      if (!centro) centro = p;
+      else {
+        const r = Math.hypot(p[0] - centro[0], p[1] - centro[1]);
+        if (r > 0) { salva(); s.tratti.push({ pts: cerchio(centro[0], centro[1], r, 36), chiusa: true, fissa: true }); }
+        centro = null;
+      }
+    } else if (!aperto) {
+      salva(); s.tratti.push({ pts: [p], r: [raggio] }); aperto = true;
+    } else {
+      const t = s.tratti[s.tratti.length - 1];
+      if (uguali(p, t.pts[t.pts.length - 1])) aperto = false;
+      else if (t.pts.length >= 3 && uguali(p, t.pts[0])) { salva(); t.chiusa = true; aperto = false; }
+      else { salva(); t.pts.push(p); t.r = t.r || []; t.r[t.pts.length - 1] = raggio; }
+    }
+    tutto();
+  }
+  function annulla() {
+    chiudi();
+    if (storia.length) { const v = JSON.parse(storia.pop()); S.segni = v.segni; S.att = Math.min(v.att, v.segni.length - 1); }
+    tutto();
+  }
+  function scegli(i) { chiudi(); S.att = i; tutto(); }
+
+  svg.addEventListener('pointerdown', ev => { ev.preventDefault(); sopra = leggi(ev); clic(sopra); });
+  svg.addEventListener('pointermove', ev => { sopra = leggi(ev); disegna(); });
+  svg.addEventListener('pointerleave', () => { sopra = null; grezzo = null; disegna(); });
+  $('b-fine').onclick = () => { chiudi(); tutto(); };
+  $('b-annulla').onclick = annulla;
+  $('b-cancella').onclick = () => {
+    const s = seg();
+    if (s.tratti.length && confirm('Cancellare il disegno di questo segno?')) { salva(); chiudi(); s.tratti = []; tutto(); }
+  };
+  $('b-nuovo').onclick = () => { salva(); chiudi(); S.segni.push(nuovoSegno('SEGNO ' + (S.segni.length + 1))); S.att = S.segni.length - 1; tutto(); $('nome').select(); };
+  $('b-togli').onclick = () => {
+    if (!confirm(`Togliere il segno "${seg().nome}"?`)) return;
+    salva(); chiudi(); S.segni.splice(S.att, 1);
+    if (!S.segni.length) S.segni.push(nuovoSegno('SEGNO 1'));
+    S.att = Math.min(S.att, S.segni.length - 1); tutto();
+  };
+  $('lista').onclick = ev => { const b = ev.target.closest('button'); if (b) scegli(+b.dataset.i); };
+  $('strip').onclick = ev => { const t = ev.target.closest('.tessera'); if (t) scegli(+t.dataset.i); };
+  $('nome').addEventListener('input', () => { seg().nome = $('nome').value; pannello(); });
+  $('autori').addEventListener('input', () => { S.autori = $('autori').value; pannello(); });
+  document.querySelectorAll('input[name=strumento]').forEach(r => r.onchange = () => { chiudi(); tutto(); });
+  for (const k of ['linea', 'lato']) $(k).addEventListener('input', () => { const v = parseFloat($(k).value); if (isFinite(v) && v > 0) { S.regole[k] = v; tutto(); } });
+  $('font').addEventListener('change', () => { S.regole.font = $('font').value; tutto(); });
+  $('lati').addEventListener('change', () => { S.regole.lati = +$('lati').value; chiudi(); tutto(); });
+  $('base').addEventListener('change', pannello);
+  $('b-rmeno').onclick = () => { raggio = Math.max(0, raggio - 1); tutto(); };
+  $('b-rpiu').onclick = () => { raggio = Math.min(RAGGIO_MAX, raggio + 1); tutto(); };
+  $('archi').addEventListener('change', disegna);
+  $('diagonali').addEventListener('change', disegna);
+  $('modello').innerHTML = '<option value="">nessuno</option>' + MODELLI.map((m, i) => `<option value="${i}">${m.nome}</option>`).join('');
+  $('modello').addEventListener('change', () => {
+    modello = MODELLI[$('modello').value] || null;
+    if (modello) S.regole.lati = 12;        // gli esempi sono costruiti su 12 × 12
+    tutto();
+  });
+  document.addEventListener('keydown', ev => {
+    const el = ev.target;
+    if (el.tagName === 'SELECT' || (el.tagName === 'INPUT' && (el.type === 'text' || el.type === 'number'))) return;
+    if (ev.key === 'Enter' || ev.key === 'Escape') { ev.preventDefault(); chiudi(); tutto(); }
+    if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'z') { ev.preventDefault(); annulla(); }
+  });
+
+  /* ---------- file ---------- */
+  const pulito = t => String(t || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const nomeFile = t => pulito(t) || 'segno';
+  // es. rossi-bianchi_biblioteca.svg : chi l'ha fatto, poi cosa è
+  const conAutori = cosa => (pulito(S.autori) ? pulito(S.autori) + '_' : '') + cosa;
+  function servonoAutori() {
+    if (pulito(S.autori)) return false;
+    alert('Prima scrivete i vostri cognomi in "Chi siete".');
+    $('autori').focus();
+    return true;
+  }
+  function scarica(dati, nome, tipo) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([dati], { type: tipo }));
+    a.download = nome;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  const vuoto = s => !s.tratti.length;
+  function svgSegno(s) {
+    const mm = S.regole.lato * N;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${n(mm)}mm" height="${n(mm)}mm" viewBox="0 0 ${N} ${N}"><g id="${nomeFile(s.nome)}">${interno(s, '#000000')}</g></svg>`;
+  }
+  function svgTutti() {
+    const pieni = S.segni.filter(s => !vuoto(s)), passo = N + 1, larg = Math.max(N, pieni.length * passo - 1);
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${n(larg * S.regole.lato)}mm" height="${n(N * S.regole.lato)}mm" viewBox="0 0 ${larg} ${N}">` +
+      pieni.map((s, i) => `<g id="${nomeFile(s.nome)}" transform="translate(${i * passo} 0)">${interno(s, '#000000')}</g>`).join('') + '</svg>';
+  }
+  // stampa 3D: ogni pezzo diventa un solido; i solidi si sovrappongono e lo slicer li unisce
+  function prisma(tri, bordo, z0, z1) {
+    const k = bordo.length, c = [0, 0];
+    bordo.forEach(p => { c[0] += p[0] / k; c[1] += p[1] / k; });
+    for (let i = 0; i < k; i++) {
+      const a = bordo[i], b = bordo[(i + 1) % k];
+      tri.push([[c[0], c[1], z1], [a[0], a[1], z1], [b[0], b[1], z1]], [[c[0], c[1], z0], [b[0], b[1], z0], [a[0], a[1], z0]],
+               [[a[0], a[1], z0], [b[0], b[1], z0], [b[0], b[1], z1]], [[a[0], a[1], z0], [b[0], b[1], z1], [a[0], a[1], z1]]);
+    }
+  }
+  function pillola(a, b, r) {
+    if (uguali(a, b)) return cerchio(a[0], a[1], r, 24);
+    const th = Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI;
+    return [...arcoPts(b[0], b[1], r, th - 90, th + 90, 10), ...arcoPts(a[0], a[1], r, th + 90, th + 270, 10)];
+  }
+  function triangoli(s) {
+    const u = S.regole.lato, r = S.regole.linea / 2, base = $('base').checked, tri = [];
+    const sBase = 1.2, rilievo = 1.6, z0 = base ? sBase / 2 : 0, z1 = base ? sBase + rilievo : rilievo;
+    const mm = pts => pts.map(p => [p[0] * u, p[1] * u]);
+    if (base) prisma(tri, [[0, 0], [N * u, 0], [N * u, N * u], [0, N * u]], 0, sBase);
+    for (const t of s.tratti) {
+      const q = mm(svolgi(t));
+      if (q.length === 1) prisma(tri, pillola(q[0], q[0], r), z0, z1);
+      for (let i = 0; i + 1 < q.length; i++) prisma(tri, pillola(q[i], q[i + 1], r), z0, z1);
+      if (t.chiusa && q.length > 2) prisma(tri, pillola(q[q.length - 1], q[0], r), z0, z1);
+    }
+    return tri;
+  }
+  function stl(tri) {
+    const buf = new ArrayBuffer(84 + tri.length * 50), dv = new DataView(buf);
+    dv.setUint32(80, tri.length, true);
+    let o = 84;
+    for (const [a, b, c] of tri) {
+      const p = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], q = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+      const v = [p[1] * q[2] - p[2] * q[1], p[2] * q[0] - p[0] * q[2], p[0] * q[1] - p[1] * q[0]], l = Math.hypot(...v) || 1;
+      [v[0] / l, v[1] / l, v[2] / l, ...a, ...b, ...c].forEach(x => { dv.setFloat32(o, x, true); o += 4; });
+      o += 2;
+    }
+    return buf;
+  }
+  const serveDisegno = () => vuoto(seg()) ? (alert('Prima disegna qualcosa.'), true) : false;
+  $('b-svg').onclick = () => { if (!serveDisegno() && !servonoAutori()) scarica(svgSegno(seg()), conAutori(nomeFile(seg().nome)) + '.svg', 'image/svg+xml'); };
+  $('b-svg-tutti').onclick = () => { if (S.segni.every(vuoto)) return alert('Prima disegna qualcosa.'); if (!servonoAutori()) scarica(svgTutti(), conAutori('famiglia') + '.svg', 'image/svg+xml'); };
+  $('b-stl').onclick = () => { if (!serveDisegno() && !servonoAutori()) scarica(stl(triangoli(seg())), conAutori(nomeFile(seg().nome)) + '.stl', 'model/stl'); };
+  $('b-salva').onclick = () => {
+    if (servonoAutori()) return;
+    // ogni segno porta con sé chi l'ha fatto, così resta anche quando si mettono insieme i lavori
+    const segniFirmati = S.segni.map(s => Object.assign({}, s, { autori: s.autori || S.autori }));
+    scarica(JSON.stringify({ autori: S.autori, segni: segniFirmati, regole: S.regole }, null, 1), conAutori('segni') + '.json', 'application/json');
+  };
+  $('b-apri').onclick = () => $('file').click();
+  $('file').onchange = async () => {
+    const f = $('file').files[0];
+    if (!f) return;
+    try {
+      const d = JSON.parse(await f.text());
+      const nuovi = (d.segni || []).filter(s => s && Array.isArray(s.tratti)).map(s => ({ nome: String(s.nome || 'SEGNO'), tratti: s.tratti, autori: String(s.autori || d.autori || '') }));
+      if (!nuovi.length) throw new Error('vuoto');
+      salva(); chiudi();
+      if (S.segni.length === 1 && vuoto(S.segni[0])) S.segni = [];
+      S.segni.push(...nuovi); S.att = S.segni.length - nuovi.length; tutto();
+    } catch (e) { alert('Questo file non contiene segni.'); }
+    $('file').value = '';
+  };
+
+  // per le prove
+  window.segni = { stato: () => S, triangoli: () => triangoli(seg()), svgSegno: () => svgSegno(seg()), svgTutti };
+
+  try {
+    const m = JSON.parse(localStorage.getItem(CHIAVE));
+    if (m && Array.isArray(m.segni) && m.segni.length) { S.segni = m.segni; S.att = Math.min(m.att || 0, m.segni.length - 1); Object.assign(S.regole, m.regole || {}); }
+  } catch (e) { /* si parte da zero */ }
+  tutto();
+})();
+</script>
+</body>
+</html>
