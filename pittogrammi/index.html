@@ -130,7 +130,6 @@
         <button id="b-svg">QUESTO SEGNO (SVG)</button>
         <button id="b-stl">PER TINKERCAD (STL)</button>
       </div>
-      <div class="campo"><label for="base">Con la tessera sotto</label><input type="checkbox" id="base" checked></div>
     </div>
     </div>
   </div>
@@ -540,10 +539,8 @@
     return [...arcoPts(b[0], b[1], r, th - 90, th + 90, 10), ...arcoPts(a[0], a[1], r, th + 90, th + 270, 10)];
   }
   function triangoli(s) {
-    const u = S.regole.lato, r = S.regole.linea / 2, base = $('base').checked, tri = [];
-    const sBase = 1.2, rilievo = 1.6, z0 = base ? sBase / 2 : 0, z1 = base ? sBase + rilievo : rilievo;
+    const u = S.regole.lato, r = S.regole.linea / 2, tri = [], z0 = 0, z1 = 1.6;
     const mm = pts => pts.map(p => [p[0] * u, p[1] * u]);
-    if (base) prisma(tri, [[0, 0], [N * u, 0], [N * u, N * u], [0, N * u]], 0, sBase);
     for (const t of s.tratti) {
       const q = mm(svolgi(t));
       if (q.length === 1) prisma(tri, pillola(q[0], q[0], r), z0, z1);
