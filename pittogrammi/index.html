@@ -124,6 +124,14 @@
       <div class="campo"><label for="lato">Una casella (mm)</label><input type="number" id="lato" min="2" max="30" step="0.5"></div>
       <p class="nota">Cambi una regola e cambiano tutti i segni insieme.</p>
     </div>
+    <div class="box">
+      <h2>SCARICA</h2>
+      <div class="fila">
+        <button id="b-svg">QUESTO SEGNO (SVG)</button>
+        <button id="b-stl">PER TINKERCAD (STL)</button>
+      </div>
+      <div class="campo"><label for="base">Con la tessera sotto</label><input type="checkbox" id="base" checked></div>
+    </div>
     </div>
   </div>
 
@@ -516,6 +524,49 @@
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${n(larg * S.regole.lato)}mm" height="${n(N * S.regole.lato)}mm" viewBox="0 0 ${larg} ${N}">` +
       pieni.map((s, i) => `<g id="${nomeFile(s.nome)}" transform="translate(${i * passo} 0)">${interno(s, '#000000')}</g>`).join('') + '</svg>';
   }
+  // stampa 3D (Tinkercad): ogni pezzo di linea diventa un solido; i solidi si sovrappongono e Tinkercad li unisce
+  function prisma(tri, bordo, z0, z1) {
+    const k = bordo.length, c = [0, 0];
+    bordo.forEach(p => { c[0] += p[0] / k; c[1] += p[1] / k; });
+    for (let i = 0; i < k; i++) {
+      const a = bordo[i], b = bordo[(i + 1) % k];
+      tri.push([[c[0], c[1], z1], [a[0], a[1], z1], [b[0], b[1], z1]], [[c[0], c[1], z0], [b[0], b[1], z0], [a[0], a[1], z0]],
+               [[a[0], a[1], z0], [b[0], b[1], z0], [b[0], b[1], z1]], [[a[0], a[1], z0], [b[0], b[1], z1], [a[0], a[1], z1]]);
+    }
+  }
+  function pillola(a, b, r) {
+    if (uguali(a, b)) return cerchio(a[0], a[1], r, 24);
+    const th = Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI;
+    return [...arcoPts(b[0], b[1], r, th - 90, th + 90, 10), ...arcoPts(a[0], a[1], r, th + 90, th + 270, 10)];
+  }
+  function triangoli(s) {
+    const u = S.regole.lato, r = S.regole.linea / 2, base = $('base').checked, tri = [];
+    const sBase = 1.2, rilievo = 1.6, z0 = base ? sBase / 2 : 0, z1 = base ? sBase + rilievo : rilievo;
+    const mm = pts => pts.map(p => [p[0] * u, p[1] * u]);
+    if (base) prisma(tri, [[0, 0], [N * u, 0], [N * u, N * u], [0, N * u]], 0, sBase);
+    for (const t of s.tratti) {
+      const q = mm(svolgi(t));
+      if (q.length === 1) prisma(tri, pillola(q[0], q[0], r), z0, z1);
+      for (let i = 0; i + 1 < q.length; i++) prisma(tri, pillola(q[i], q[i + 1], r), z0, z1);
+      if (t.chiusa && q.length > 2) prisma(tri, pillola(q[q.length - 1], q[0], r), z0, z1);
+    }
+    return tri;
+  }
+  function stl(tri) {
+    const buf = new ArrayBuffer(84 + tri.length * 50), dv = new DataView(buf);
+    dv.setUint32(80, tri.length, true);
+    let o = 84;
+    for (const [a, b, c] of tri) {
+      const p = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], q = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+      const v = [p[1] * q[2] - p[2] * q[1], p[2] * q[0] - p[0] * q[2], p[0] * q[1] - p[1] * q[0]], l = Math.hypot(...v) || 1;
+      [v[0] / l, v[1] / l, v[2] / l, ...a, ...b, ...c].forEach(x => { dv.setFloat32(o, x, true); o += 4; });
+      o += 2;
+    }
+    return buf;
+  }
+  const serveDisegno = () => vuoto(seg()) ? (alert('Prima disegna qualcosa.'), true) : false;
+  $('b-svg').onclick = () => { if (!serveDisegno() && !servonoAutori()) scarica(svgSegno(seg()), conAutori(nomeFile(seg().nome)) + '.svg', 'image/svg+xml'); };
+  $('b-stl').onclick = () => { if (!serveDisegno() && !servonoAutori()) scarica(stl(triangoli(seg())), conAutori(nomeFile(seg().nome)) + '.stl', 'model/stl'); };
 
   /* ---------- salvataggio condiviso (Supabase) ----------
      Ogni segno è una riga della tabella pittogrammi_segni. I segni della coppia si salvano
@@ -607,7 +658,7 @@
   $('b-collega').onclick = () => collega($('classe').value);
 
   // per le prove
-  window.segni = { stato: () => S, altri: () => altri, svgSegno: () => svgSegno(seg()), svgTutti };
+  window.segni = { stato: () => S, altri: () => altri, triangoli: () => triangoli(seg()), svgSegno: () => svgSegno(seg()), svgTutti };
 
   try {
     const m = JSON.parse(localStorage.getItem(CHIAVE));
